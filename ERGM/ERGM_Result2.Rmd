@@ -1,0 +1,248 @@
+---
+title: "ERGM5_centrality"
+author: "Maroan El Sirfy"
+date: "2025-02-08"
+output: html_document
+---
+
+```{r}
+# Load required libraries
+library(igraph)
+library(intergraph)
+```
+# SIMULATED CENTRALITY PLOTS
+
+```{r}
+
+compute_centrality_stats <- function(net) {
+  # Convert the network object (from the network package) to an igraph object
+  g <- asIgraph(net)
+  
+  # If higher weight means a stronger connection, we often want to use the inverse
+  # for centrality measures based on shortest paths.
+  # (Make sure there are no zero weights; if there are, you might want to add a small constant.)
+  E(g)$inv_weight <- 1 / E(g)$weight
+  
+  used_weight <- E(g)$weight
+  #used_weight <- E(g)$inv_weight
+  
+  # Compute betweenness centrality (using the inverted weight)
+  # This tells us which nodes act as bridges in the flow of information/loans.
+  bet <- betweenness(g, directed = TRUE, weights = used_weight)
+  
+  # Compute closeness centrality (using the inverted weight)
+  # Closeness centrality captures how close a node is to all others.
+  clo <- closeness(g, mode = "all", weights = used_weight)
+  
+  # Compute eigenvector centrality (using the original weight)
+  # For directed networks, igraph returns a list; we extract the centrality vector.
+  
+  eig <- eigen_centrality(g, directed = TRUE, weights = used_weight, options = list(alpha = alpha))$vector
+  
+  
+  
+  pa_ra <- page_rank(g, directed = TRUE, weights = used_weight)$vector
+  
+  # Create summary statistics (mean and median for each centrality measure)
+  summary_stats <- list(
+    mean_betweenness = mean(bet),
+    median_betweenness = median(bet),
+    mean_closeness = mean(clo),
+    median_closeness = median(clo),
+    mean_eigenvector = mean(eig),
+    median_eigenvector = median(eig),
+    mean_pagerank = mean(pa_ra),
+    median_pagerank = median(pa_ra)
+  )
+  
+  return(list(
+    betweenness = bet,
+    closeness = clo,
+    eigenvector = eig,
+    pagerank = pa_ra,
+    summary = summary_stats
+  ))
+}
+
+```
+
+
+
+```{r}
+# Compute centrality statistics for the observed network
+obs_cent_stats <- compute_centrality_stats(net)
+
+# Print observed summary statistics
+cat("Observed Centrality Summary:\n")
+print(obs_cent_stats$summary)
+
+```
+
+```{r warning=FALSE}
+# Compute centrality statistics for each simulated network
+sim_cent_stats <- lapply(sim_networks, compute_centrality_stats)
+
+```
+
+```{r}
+sim_cent_stats_df <- data.frame(
+  mean_betweenness   = sapply(sim_cent_stats, function(x) x$summary$mean_betweenness),
+  median_betweenness = sapply(sim_cent_stats, function(x) x$summary$median_betweenness),
+  mean_closeness     = sapply(sim_cent_stats, function(x) x$summary$mean_closeness),
+  median_closeness   = sapply(sim_cent_stats, function(x) x$summary$median_closeness),
+  mean_eigenvector   = sapply(sim_cent_stats, function(x) x$summary$mean_eigenvector),
+  median_eigenvector = sapply(sim_cent_stats, function(x) x$summary$median_eigenvector),
+  mean_pagerank   = sapply(sim_cent_stats, function(x) x$summary$mean_pagerank),
+  median_pagerank = sapply(sim_cent_stats, function(x) x$summary$median_pagerank)
+)
+
+# Check the first few rows (optional)
+head(sim_cent_stats_df)
+
+```
+
+```{r}
+# Set up a plotting layout (2 rows x 3 columns)
+par(mfrow = c(2, 4))
+
+# Define statistic names and corresponding observed values
+stat_names <- colnames(sim_cent_stats_df)
+obs_values <- c(
+  obs_cent_stats$summary$mean_betweenness,
+  obs_cent_stats$summary$median_betweenness,
+  obs_cent_stats$summary$mean_closeness,
+  obs_cent_stats$summary$median_closeness,
+  obs_cent_stats$summary$mean_eigenvector,
+  obs_cent_stats$summary$median_eigenvector,
+  obs_cent_stats$summary$mean_pagerank,
+  obs_cent_stats$summary$median_pagerank
+)
+
+# Loop through each centrality statistic to plot
+for (i in seq_along(stat_names)) {
+  hist(sim_cent_stats_df[[stat_names[i]]],
+       main = paste("Simulated", stat_names[i]),
+       xlab = stat_names[i],
+       col = "skyblue", border = "white")
+  abline(v = obs_values[i], col = "red", lwd = 2)
+  legend("topright", legend = paste("Obs =", round(obs_values[i], 3)),
+         col = "red", lwd = 2, bty = "n")
+}
+
+# Reset plotting layout to default
+par(mfrow = c(1, 1))
+
+```
+
+
+# SIMULATED TOPOLOGY PLOT
+```{r}
+compute_global_stats <- function(net) {
+  # Convert the network object to an igraph object
+  g <- asIgraph(net)
+  
+  # Create an "inverted weight" for distance measures.
+  # (Assume all edge weights > 0; otherwise, add a small constant.)
+  E(g)$inv_weight <- 1 / E(g)$weight
+  
+  used_weights <- E(g)$weight
+  #used_weights <- E(g)$inv_weight
+  
+  # Average Path Length and Diameter:
+  # If the network is disconnected, we focus on the largest weakly connected component.
+   if (!is_connected(g, mode = "weak")) {
+    comps <- components(g, mode = "weak")
+    largest_comp <- which.max(comps$csize)
+    gc_nodes <- V(g)[comps$membership == largest_comp]
+    g_sub <- induced_subgraph(g, gc_nodes)
+    apl <- igraph::mean_distance(g, directed = TRUE, weights = used_weights)
+    diam <- diameter(g, directed = TRUE, weights = used_weights)
+  } else {
+    apl <- igraph::mean_distance(g, directed = TRUE, weights = used_weights)
+    diam <- diameter(g, directed = TRUE, weights = used_weights)
+  }
+  
+  # Global Clustering Coefficient (Transitivity)
+  clustering <- transitivity(g, type = "average")
+  
+  # Reciprocity: Proportion of mutual (bidirectional) ties.
+  rec <- reciprocity(g)
+  
+  # Degree Assortativity: Measures the tendency for nodes to attach to others with similar degree.
+  assort <- assortativity_degree(g, directed = TRUE)
+  
+  # Community Structure: Compute modularity on the undirected projection.
+  # Many community detection algorithms require undirected networks.
+  g_und <- igraph::as_undirected(g, mode = "collapse")
+  community <- cluster_walktrap(g_und)
+  mod <- modularity(community)
+  
+  return(list(
+    average_path_length = apl,
+    diameter = diam,
+    clustering = clustering,
+    reciprocity = rec,
+    assortativity = assort,
+    modularity = mod
+  ))
+}
+```
+
+```{r}
+# Compute global statistics for the observed network
+obs_global_stats <- compute_global_stats(net)
+
+cat("Observed Global Statistics:\n")
+print(obs_global_stats)
+```
+
+```{r}
+# Assume sim_networks is a list of network objects generated from the fitted ERGM
+sim_global_stats <- lapply(sim_networks, compute_global_stats)
+```
+
+
+
+```{r}
+sim_global_stats_df <- data.frame(
+  average_path_length = sapply(sim_global_stats, function(x) x$average_path_length),
+  diameter            = sapply(sim_global_stats, function(x) x$diameter),
+  clustering          = sapply(sim_global_stats, function(x) x$clustering),
+  reciprocity         = sapply(sim_global_stats, function(x) x$reciprocity),
+  assortativity       = sapply(sim_global_stats, function(x) x$assortativity),
+  modularity          = sapply(sim_global_stats, function(x) x$modularity)
+)
+
+head(sim_global_stats_df)
+```
+
+
+
+```{r}
+# Set up a multi-panel plot (adjust layout as needed)
+par(mfrow = c(2, 3))
+stat_names <- colnames(sim_global_stats_df)
+obs_values <- c(
+  obs_global_stats$average_path_length,
+  obs_global_stats$diameter,
+  obs_global_stats$clustering,
+  obs_global_stats$reciprocity,
+  obs_global_stats$assortativity,
+  obs_global_stats$modularity
+)
+
+for (i in seq_along(stat_names)) {
+  hist(sim_global_stats_df[[stat_names[i]]],
+       main = paste("Simulated", stat_names[i]),
+       xlab = stat_names[i],
+       col = "skyblue", border = "white")
+  abline(v = obs_values[i], col = "red", lwd = 2)
+  legend("topright", legend = paste("Obs =", round(obs_values[i], 3)),
+         col = "red", lwd = 2, bty = "n")
+}
+
+# Reset to default plotting layout
+par(mfrow = c(1, 1))
+```
+
+

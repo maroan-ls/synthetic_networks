@@ -1,0 +1,280 @@
+---
+title: "ERGM1"
+author: "Maroan El Sirfy"
+date: "2025-01-24"
+output: html_document
+---
+
+```{r}
+install.packages("ergm")
+install.packages("network")
+
+library(ergm)
+library(igraph)
+library(network)
+library(intergraph)
+```
+```{r}
+
+```
+
+
+```{r}
+net_dyn <- networkDynamic(base.net = net_s)
+
+# Fit using btergm (handles valued edges better)
+install.packages("btergm")
+library(btergm)
+btergm_model <- btergm(net_dyn ~ edges + istar(2), 
+                       R = 500) #
+```
+
+
+```{r}
+set.seed(123)
+net_mwe <- network.initialize(10, directed = TRUE)
+net_mwe %e% "weight" <- rpois(10, lambda = 2) # Add random weights
+
+# Fit a simple valued ERGM
+fit <- ergm(net_mwe ~ sum, response = "weight", reference = ~Poisson)
+summary(fit)
+```
+
+
+```{r}
+
+# Convert igraph to network
+net_s <- asNetwork(g_rebuilt)
+
+# Add the weight attribute
+network::set.edge.attribute(net_s, "weight", E(g_rebuilt)$weight)
+```
+
+
+```{r}
+ergm.terms("sum") 
+```
+```{r}
+fit_simple <- ergm(net_s ~ edges + mutual)
+summary(fit_simple)
+fs_stats <- summary(fit_simple)
+print(fs_stats)
+```
+,
+                     control = control.ergm(
+                       MCMC.burnin = 10000,
+                       MCMC.interval = 1000,
+                       MCMLE.maxit = 50,
+                       MCMC.samplesize = 10000
+                     )
+```{r}
+set.seed(123)
+fit_baseline <- ergm(net_s ~ edges + mutual)
+summary(fit_baseline)
+fit_weighted_geo <- ergm(net_s ~ edges + mutual, 
+                     response = "weight", 
+                     reference = ~Poisson)
+fit_weighted_simple <- ergm(net_s ~ edges + mutual + gwesp(0.1, fixed = TRUE))
+
+fit_weighted_simple <- ergm(net_s ~ sum, 
+                   response = "weight",
+                   reference = ~Poisson)
+
+
+summary(fit_weighted)
+summary(fit_weighted_geo)
+
+```
+```{r}
+net_s %e% "log_weight" <- log(net_s %e% "weight" + 1e-6) # Avoid log(0)
+ergm_model <- ergm(net_s ~ sum,
+                   response = "weight",
+                   reference = ~Poisson)
+
+fit_log <- ergm(net_s ~ sum, response = "log_weight", reference = ~Gaussian)
+
+net_s %e% "log_offset" <- log(net_s %e% "weight") # Natural log offset
+fit_weighted <- ergm(net_s ~ sum,
+                   response = "weight",
+                   reference = ~Poisson, # Temporarily use Poisson
+                   constraints = ~observed, # Fix zero dyads
+                   control = control.ergm(
+                     MCMC.prop.weights = "0inflated", # Zero-inflated proposal
+                     init = 0.1 # Small initial value
+                   ))
+```
+
+
+```{r}
+ergm_model <- ergm(net_s ~ edges,
+                   response = "weight",
+                   reference = ~Poisson, # Even if not perfect, start here
+                   #constraints = ~nonzero(), # Critical for sparse networks
+                   control = control.ergm(
+                     MCMC.prop.weights = "0inflated", # For zero-heavy data
+                     init = c(0.1) # Start with small initial value
+                   ))
+```
+
+
+```{r}
+mcmc.diagnostics(fit_baseline)
+summary(fit_baseline)
+```
+```{r}
+hist(network::get.edge.attribute(net_s, "weight"), breaks = 20, main = "Edge Weight Distribution")
+
+```
+
+
+```{r}
+ #Convert igraph to statnet network object
+net <- intergraph::asNetwork(g_l)
+
+# Verify edge weights (replace "weight" with your actual edge attribute name)
+network::set.edge.attribute(net, "weight", network::get.edge.attribute(g_l, "weight"))
+
+# Check the network structure
+summary(net)
+plot(net, edge.lwd = log(net %e% "weight"))
+```
+
+```{r}
+#Round - make integer 
+weights <- network::get.edge.attribute(net_s, "weight")
+round_weights <- round(weights, 0)
+network::set.edge.attribute(net_s, "weight", value = round_weights)
+```
+
+```{r}
+#Scale
+weights <- network::get.edge.attribute(net_s, "weight")
+scaled_weights <- scale(weights)
+scaled_weights <- c(scaled_weights)
+scaled_weights <- round(100 * (weights / max(weights)))
+network::set.edge.attribute(net_s, "weight", value = scaled_weights)
+
+# OR
+network::set.edge.attribute(net_s, "weight", value = scale(weights))
+
+```
+
+```{r}
+summary(network::get.edge.attribute(net_s, "weight"))
+network::get.edge.attribute(net_s, "weight")
+```
+
+```{r}
+gl_s <- g_l
+E(gl_s)$std_weight <- scale(E(gl_s)$weight)
+summary(E(gl_s)$std_weight)
+```
+
+```{r}
+plot(sort(igraph::E(gl_s)$weight, decreasing  = TRUE))
+```
+
+```{r}
+install.packages("fitdistrplus")
+library(fitdistrplus)
+series_weights_std <- igraph::E(gl_s)$std_weight
+ws <- igraph::E(gl_s)$weight
+wss <- c(series_weights_std)
+descdist(wss, discrete = FALSE)
+fitg <- fitdist(ws, "weibull")
+summary(fitg)
+```
+
+
+```{r}
+net <- asNetwork(gl_s)
+# Set edge attribute for standardized/logged weights
+network::set.edge.attribute(net, "loan_value", igraph::E(gl_s)$weight)
+```
+
+```{r}
+summary(net)
+summary(net_s ~ sum)
+```
+
+
+```{r}
+g_simplified <- igraph::simplify(gl_s, edge.attr.comb = list(weight = "sum"))
+net_s <- intergraph::asNetwork(g_simplified)
+
+```
+```{r}
+g_rebuilt <- igraph::graph_from_data_frame(igraph::as_data_frame(g_simplified, what = "edges"),
+                                           vertices = igraph::as_data_frame(g_simplified, what = "vertices"),
+                                           directed = igraph::is_directed(g_simplified))
+```
+
+```{r}
+net <- intergraph::asNetwork(g_rebuilt)
+```
+
+```{r}
+g__simple_subset <- igraph::induced_subgraph(g_simplified, vids = sample(vcount(g_simplified), 1000))
+net_subset <- intergraph::asNetwork(g__simple_subset)
+```
+
+```{r}
+network::set.edge.attribute(net_s, "loan_value", igraph::E(g_simplified)$weight)
+loan_matrix <- network::as.sociomatrix(net_s, attrname = "loan_value")
+```
+
+
+```{r}
+# Example formula with common terms for a financial network:
+model_formula <- net ~ 
+  sum() +                          # Baseline tendency for loan volume
+  nonzero() +                      # Baseline tendency for loans to exist
+  mutual(form = "min") +           # Reciprocity (minimum of mutual weights)
+  sender("sender_attr") +          # Sender effect (e.g., lender size)
+  receiver("receiver_attr") +      # Receiver effect (e.g., borrower risk)
+  edgecov("covariate_matrix") +    # Dyadic covariate (e.g., shared sector)
+  transitiveweights("min", "max")  # Transitivity in weighted edges
+```
+
+```{r}
+model_formula <- net_s ~ 
+  edges +
+  mutual +           # Reciprocity (minimum of mutual weights)
+  edgecov(loan_matrix) +         # Dyadic effect (if you have dyad-level covariates)
+  transitiveweights("geomean", "sum") +  # Transitivity (weighted)
+  cyclicalweights("geomean", "sum")
+```
+
+```{r}
+ergm(net_s ~ edges + edgecov(loan_matrix), response = "weight")
+```
+```{r}
+#+ gwesp(0.5, fixed = TRUE)
+fit <- ergm(net_s ~ edges + mutual, 
+            response = "weight", 
+            reference = ~Geometric)
+```
+```{r}
+fit_simple <- ergm(net_s ~ edges, response = "weight", reference = ~Geometric)
+```
+
+```{r}
+summary(fit)
+```
+
+```{r}
+library(ergm.count)
+fit <- ergm(
+  model_formula,
+  control = control.ergm(
+    MCMC.burnin = 20000,
+    MCMC.interval = 1000,
+    MCMLE.maxit = 50
+  )
+)
+```
+
+```{r}
+
+```
+

@@ -1,0 +1,249 @@
+---
+title: "ERGM2"
+author: "Maroan El Sirfy"
+date: "2025-01-27"
+output: html_document
+---
+
+```{r}
+# install.packages("statnet")
+# install.packages("ergm.count")
+# install.packages("igraph")
+# install.packages("network")
+# install.packages("tergm")
+# install.packages("ergm.multi")
+```
+```{r}
+library(ergm)
+library(igraph)
+library(network)
+library(intergraph)
+library(ergm.count)
+library(statnet)
+library(tergm)
+```
+
+
+```{r}
+temp_n_weight <- network::get.edge.attribute(net, "weight")
+typeof(temp_n_weight)
+```
+
+```{r}
+fit_base <- ergm(net ~ edges)
+summary(fit_base)
+```
+
+```{r}
+fit_weights <- ergm(net ~ edges + edgecov(net, "weight"))
+summary(fit_weights)
+```
+
+```{r}
+gof_fit <- gof(fit_weights4, control = control.gof.formula(nsim = 10), verbose = 4)
+
+plot(gof_fit)
+```
+Okay this worked, at least there were no major errors, after I fixed your mistake.
+
+```{r}
+fit_weights2 <- ergm(net ~ edges + idegree(1:4) + odegree(1:4))
+summary(fit_weights2)
+```
+```{r}
+fit_weights2 <- ergm(net ~ edges + idegree(1:4) + odegree(1:4))
+```
+
+```{r}
+gof_fit2 <- gof(fit_weights2, control = control.gof.formula(nsim = 10), verbose = 4)
+plot(gof_fit2)
+```
+```{r}
+mcmc.diagnostics(fit_weights2)
+```
+
+
+```{r}
+log_weights <- log1p(network::get.edge.attribute(net, "weight"))
+network::set.edge.attribute(net, "log_weight", log_weights)
+```
+
+```{r}
+fit_weights3 <- ergm(net ~ edges + edgecov(net, "log_weight"))
+summary(fit_weights3)
+```
+
+
+```{r}
+# Convert to adjacency matrix with weights
+weight_matrix <- as.matrix(network::as.sociomatrix(net, attr = "weight"))
+
+in_weights <- colSums(weight_matrix)  # Total borrowed per node
+out_weights <- rowSums(weight_matrix) # Total lent per node
+
+# Assign as nodal attributes in the network object
+network::set.vertex.attribute(net, "in_weight", in_weights)
+network::set.vertex.attribute(net, "out_weight", out_weights)
+
+rm(weight_matrix)
+```
+
+
+
+```{r}
+fit_weights4s <- ergm(net ~ edges + nodeicov("in_weight") + nodeocov("out_weight"))
+
+summary(fit_weights4)
+```
+
+
+```{r}
+fit_weights5 <- ergm(net ~ edges + nodeicov("in_weight") + nodeocov("out_weight") + 
+     nodematch("in_weight") + nodematch("out_weight"))
+summary(fit_weights5)
+```
+
+```{r}
+fit_weights6 <- ergm(net ~ edges + edgecov(net, "weight") + nodeicov("in_weight") + nodeocov("out_weight"))
+summary(fit_weights6)
+```
+```{r}
+fit_weights7 <- ergm(net ~ edges + edgecov(net, "weight"),
+                     response = "weight",
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                          seed = 123))
+summary(fit_weights7)
+```
+
+```{r}
+fit_weights6 <- ergm(net ~ sum + nonzero,
+                     response = "weight",
+                     reference = ~Geometric,
+                     control = control.ergm(seed = 123))#,
+                                         # parallel = 4))
+summary(fit_weights6)
+
+```
+
+```{r}
+fit_weight8 <- ergm(net ~ edges + nodeocov("out_weight") + transitiveties, 
+                   response = "weight", 
+                   reference = ~Geometric,
+                   control = control.ergm(MCMC.samplesize = 2000,
+                                          seed = 123))
+summary(fit_weight8)
+```
+
+
+```{r}
+fit_weight9 <- ergm(net ~ sum, 
+                   response = "weight", 
+                   reference = ~Geometric,
+                   control = control.ergm(MCMC.samplesize = 2000,
+                                          seed = 123))
+summary(fit_weight9)
+```
+
+```{r}
+fit_weight10 <- ergm(net ~ edges + nodeocov("out_weight") + transitiveties, 
+                   response = "weight", 
+                   reference = ~Geometric,
+                   control = control.ergm(MCMC.samplesize = 2000,
+                                          seed = 123))
+summary(fit_weight10)
+```
+
+```{r}
+mcmc.diagnostics(fit_weight10)
+```
+```{r}
+fit_weight11 <- ergm(net ~ transitiveweights("geomean"), 
+                   response = "weight", 
+                   reference = ~Geometric,
+                   control = control.ergm(MCMC.samplesize = 3000,
+                                          seed = 123))
+summary(fit_weight11)
+
+```
+
+```{r}
+fit_weight12 <- ergm(net ~ edges + mutual(form = "nabsdiff"), 
+                     response = "weight", reference = ~Geometric, 
+                     control = control.ergm(seed = 123))
+summary(fit_weight12)
+```
+
+
+```{r}
+fit_weight13 <- ergm(net ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                            seed = 123))
+summary(fit_weight13)
+```
+
+
+
+```{r}
+f13_sim <- simulate(fit_weight13, monitor=~transitiveweights("geomean", "sum", "geomean"), nsim=10, output="stats")
+(colnames(f13_sim))
+```
+
+
+
+```{r}
+f13_sim2 <- simulate(fit_weight13, seed=123)
+summary(net)
+summary(f13_sim2)
+```
+
+
+```{r}
+# How high is the transitiveweights statistic in the observed network?
+f13.obs <- summary(net ~ transitiveweights("geomean", "sum", "geomean"), response="weight")
+f13.obs
+```
+
+
+```{r}
+plot(density(f13_sim))
+abline(v = f13.obs)
+```
+
+```{r}
+min(mean(f12_sim > f12.obs), mean(f12_sim < f12.obs)) * 2
+```
+
+```{r}
+network::list.vertex.attributes(net)
+```
+
+```{r}
+fit_weight14 <- ergm(net ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.burnin = 50000, 
+                                            MCMC.samplesize = 50000, 
+                                            MCMC.interval = 10000, 
+                                            MCMLE.maxit = 50,, 
+                                            MCMLE.steplength = 0.25, 
+                                            MCMLE.density.guard = 100,
+                                            seed = 123))
+summary(fit_weight14)
+```
+
+```{r}
+fit_weight15 <- ergm(net_full ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.burnin = 50000, 
+                                            MCMC.samplesize = 5000, 
+                                            MCMC.interval = 10000, 
+                                            MCMLE.maxit = 50,, 
+                                            MCMLE.steplength = 0.25, 
+                                            MCMLE.density.guard = 100,
+                                            seed = 123))
+summary(fit_weight15)
+```

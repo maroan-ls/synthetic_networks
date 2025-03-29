@@ -1,0 +1,250 @@
+---
+title: "Processing Network"
+output: html_notebook
+---
+
+
+```{r}
+packages <- c("dplyr", "readxl", "stringr", "purrr", "tidyr", "stringdist","intergraph","visNetwork","ggraph")
+
+# Install missing packages
+install_if_missing <- function(pkg) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+  }
+}
+
+# Install and load packages
+invisible(lapply(packages, install_if_missing))
+invisible(lapply(packages, library, character.only = TRUE)) 
+```
+```{r}
+library(igraph)
+library(visNetwork)
+```
+
+```{r}
+df <- read.csv("./Processing/processed_loan_v2.csv")
+```
+
+```{r}
+df_agg <- df %>%
+  group_by(LoanID, Lender, Borrower) %>%
+  summarise(
+  AssignedLoanShare = sum(AssignedLoanShare),
+  Roles = paste(unique(Role), collapse = ", "),
+  Sector = first(Sector),
+  MaturityDate = first(Maturity.Date),
+  IssueDate = first(Issue.Date),
+  Region = first(Region),
+  LenderMarket = first(LenderMarket),
+  BorrowerDomicile = first(BorrowerDomicile),
+  TrancheType = first(TrancheType),
+  TrancheCurrency = first(TrancheCurrency),
+  Seniority = first(Seniority)
+  # etc...
+  )
+
+```
+
+```{r}
+g_l <- graph_from_data_frame(
+  d = df_agg[, c("Lender", "Borrower", "AssignedLoanShare", "Roles")],
+  directed = TRUE
+)
+
+# Set the 'AssignedLoanShare' as the edge weight
+E(g_l)$weight <- E(g_l)$AssignedLoanShare
+
+# Optionally keep 'Roles' as an edge attribute:
+#E(g)$roles <- df_agg$Roles
+```
+
+
+```{r}
+# Create an edge list
+#edges <- df[, c("Consolidated.Lender.Name", "Normalized.Borrower.Name")]
+
+# Create a graph object from the edge list
+#g <- graph_from_data_frame(edges, directed = TRUE)
+```
+
+
+```{r}
+# Calculate out-degree and in-degree directly
+out_degree <- igraph::degree(g_l, mode = "out")
+in_degree <- igraph::degree(g_l, mode = "in")
+```
+
+
+
+
+```{r}
+## Subgraph of XX most common lender with their borrowers 
+
+# Select top 10 nodes by out-degree
+top_out_nodes <- names(sort(out_degree, decreasing = TRUE)[1:30])
+
+# Use `neighbors()` to find the neighbors for each top node
+all_neighbors <- lapply(top_out_nodes, function(node) {
+  as.character(neighbors(g_l, v = node, mode = "all"))  # Get neighbors of the node
+})
+
+# Combine the top nodes and their neighbors
+all_nodes <- unique(c(top_out_nodes, unlist(all_neighbors)))
+
+# Create a subgraph with the selected nodes
+sub_g <- induced_subgraph(g_l, vids = V(g_l)[name %in% all_nodes])
+
+# Identify vertices with at least one edge
+connected_nodes <- V(sub_g)[igraph::degree(sub_g, mode = "all") > 0]
+
+# Create a new subgraph with only the connected nodes
+sub_g_connected <- induced_subgraph(sub_g, vids = connected_nodes)
+#> visNetwork::visIgraph(sub_g_connected)
+```
+
+```{r}
+comp <- igraph::components(as_undirected(g_l))  # "weak" connectivity
+max_comp_id <- which.max(comp$csize)
+g_main <- induced_subgraph(g_l, which(comp$membership == max_comp_id))
+```
+
+```{r}
+# Identify connected components
+components <- igraph::components(as_undirected(g_l))
+
+# Find the size of the largest connected component
+print(max(components$csize))
+
+#Could use largest_component() but does not retain VertexID of original graph - could be used later is not needed
+
+# Find the component ID of the largest connected component
+largest_component_id <- which.max(components$csize)
+```
+
+```{r}
+# Create a subgraph of the largest connected component
+largest_component <- induced_subgraph(g_l, vids = which(components$membership == largest_component_id))
+```
+
+```{r}
+#For easier working
+g_l <- largest_component
+# This is a fix for symbolically weighted edges, for correctly calculating centrality measures later
+# They are just the remains of Sole lender 100% scale factor calculation
+E(g_l)$weight[E(g_l)$weight == 0] <- 0.1
+```
+
+```{r}
+g_l_s <- igraph::simplify(
+  g_l, 
+  edge.attr.comb = list(weight = "sum"),
+  remove.loops = TRUE
+)
+g_l_s <- delete_edge_attr(g_l_s, "Roles")
+g_l_s <- delete_edge_attr(g_l_s, "AssignedLoanShare")
+E(g_l_s)$weight[E(g_l_s)$weight == 0.1] <- 1
+E(g_l_s)$weight <- round(E(g_l_s)$weight)
+net_full <- intergraph::asNetwork(g_l_s)
+network::set.edge.attribute(net_full, "weight", igraph::get.edge.attribute(g_l_s, "weight"))
+```
+
+# Subgraph Top 10s
+Compute (Sample) Top 10 largest borrowers and sellers by USD Amount and create Subgraph
+```{r}
+# Step 1: Compute total out and in weights
+out_strength <- strength(g_l, mode = "out", weights = E(g_l)$weight)
+in_strength <- strength(g_l, mode = "in", weights = E(g_l)$weight)
+
+# Step 2: Select top lenders and borrowers
+top_lenders <- names(sort(out_strength, decreasing = TRUE))[1:10]
+top_borrowers <- names(sort(in_strength, decreasing = TRUE))[1:10]
+
+# Combine unique nodes
+important_nodes <- unique(c(top_lenders, top_borrowers))
+
+# Step 3: Find their neighbors
+neighbors <- unique(unlist(igraph::neighborhood(g_l, order = 1, nodes = important_nodes, mode = "all")))
+
+# Step 4: Create the subgraph
+sub_g <- induced_subgraph(g_l, vids = neighbors)
+
+sub_g <- induced_subgraph(g, vids = important_nodes)
+
+
+# Check the size of the reduced graph
+print(vcount(sub_g))
+print(ecount(sub_g))
+
+```
+
+
+
+```{r}
+#Number of vertices and edges
+vcount(sub_g)
+ecount(sub_g)
+gsize(sub_g)
+
+count_components(sub_g)
+is_connected(sub_g)
+print("Multiedges exist:")
+any_multiple(sub_g)
+```
+
+```{r}
+
+sub_g <- delete_edge_attr(sub_g, "Roles")
+sub_g <- delete_edge_attr(sub_g, "AssignedLoanShare")
+sub_g_sf <- igraph::simplify(
+  sub_g, 
+  edge.attr.comb = list(weight = "sum"),
+  remove.loops = TRUE
+)
+```
+
+
+```{r}
+#Number of vertices and edges
+vcount(sub_g_sf)
+ecount(sub_g_sf)
+
+count_components(sub_g_sf)
+is_connected(sub_g_sf)
+print("Multiedges exist:")
+any_multiple(sub_g_sf)
+```
+
+# Preparing ERGM
+
+```{r}
+
+
+E(sub_g_sf)$weight <- round(E(sub_g_sf)$weight)
+net <- intergraph::asNetwork(sub_g_sf)
+
+# Verify edge weights (replace "weight" with actual edge attribute name)
+#network::set.edge.attribute(net, "weight", igraph::get.edge.attribute(g_l, "weight"))
+
+```
+
+```{r}
+#Check model formation worked as intended
+summary(net)
+network::list.edge.attributes(net)
+```
+
+```{r}
+node_names <- network::get.vertex.attribute(net, "vertex.names")
+```
+
+```{r}
+#node_df <- unique(df_agg[, c("Lender", "Sector", "Region", "LenderMarket")])  # Adjust as needed
+```
+
+
+
+
+
+

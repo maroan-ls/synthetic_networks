@@ -1,0 +1,60 @@
+---
+title: "Thesis baseline samplegraphs"
+author: "Maroan El Sirfy"
+date: "2025-01-21"
+output: html_document
+---
+
+```{r}
+set.seed(123)
+```
+
+```{r}
+g_er <- sample_gnm(vcount(g_l_s), ecount(g_l_s), directed = TRUE)
+g_er_sub <- sample_gnm(vcount(sub_g_sf), ecount(sub_g_sf), directed = TRUE)
+transitivity(g_er, type = "average")
+mean_distance(g_er, directed = TRUE)
+```
+
+```{r}
+swg <- sample_smallworld(dim = 1, size = vcount(g_l_s), nei = 4, p = 0.5, loops = FALSE, multiple = FALSE)
+swg_sub <- sample_smallworld(dim = 1, size = vcount(sub_g_sf), nei = 4, p = 0.5, loops = FALSE, multiple = FALSE)
+count_components(swg)
+is_connected(swg)
+transitivity(swg, type = "average")
+mean_distance(swg, directed = TRUE)
+mean_distance(swg_sub, directed = TRUE)
+ecount(swg)
+ecount(swg_sub)
+
+```
+
+
+```{r}
+g_pa <- sample_pa(n=vcount(g_l_s), m=4, directed=TRUE, algorithm = c("bag"))
+g_pa_sub <- sample_pa(n=vcount(sub_g_sf), m=4, directed=TRUE, algorithm = c("bag"))
+count_components(g_pa)
+transitivity(g_pa, type = "average")
+mean_distance(g_pa, directed = TRUE, weights = NA)
+ecount(g_pa)
+```
+
+```{r}
+# Degree distribution
+dd_g_bg <- degree_distribution(g_er, cumulative = FALSE)
+cumdd_g_bg <- degree_distribution(g_er, cumulative = TRUE)
+```
+
+
+```{r}
+# 2. Plot separate histograms (base R)
+par(mfrow=c(1,2))  # 2 plots side-by-side for convenience
+
+plot(dd_g_bg, type="s", col="blue", xaxt="n", xlab="Degree", ylab="Relative Frequency",
+     main = "Degree Distribution")
+axis(1, at=NULL, labels=TRUE)
+plot(cumdd_g_bg, type="s", col="blue", xaxt="n", xlab="Degree", ylab="Cumulative Frequency",
+     main = "Cumulative Degree Distribution")
+axis(1, at=NULL, labels=TRUE)
+
+```

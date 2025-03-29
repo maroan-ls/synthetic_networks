@@ -1,0 +1,316 @@
+---
+title: "ERGM4"
+author: "Maroan El Sirfy"
+date: "2025-02-01"
+output: html_document
+---
+
+
+```{r}
+g_f_sim <- asIgraph(f13_sim2)
+```
+
+
+```{r}
+#visNetwork::visIgraph(g_f_sim)
+```
+
+
+
+
+```{r}
+set.seed(123)
+numSims <- 500
+f14_sims <- simulate(fit_weight14, nsim = numSims, output = "network", seed = 123)
+```
+
+```{r}
+sim_networks <- f14_sims
+```
+
+```{r}
+# For illustration, compute a summary statistic – say, the total sum of edge weights
+obs_stat <- sum(get.edge.attribute(net, "weight"))
+
+sim_stats <- sapply(sim_networks, function(net) {
+  sum(get.edge.attribute(net, "weight"))
+})
+
+# Plot the distribution of the simulated statistic
+hist(sim_stats, breaks = 30, main = "Distribution of Total Edge Weight", 
+     xlab = "Total Edge Weight")
+abline(v = obs_stat, col = "red", lwd = 2)
+legend("topright", legend = "Observed", col = "red", lwd = 2)
+```
+
+```{r}
+# Compare edge weight distributions
+real_weights <- as.edgelist(net, attrname = "weight")[, 3]
+sim_weights <- unlist(lapply(sim_networks, function(net) as.edgelist(net, attrname = "weight")[, 3]))
+
+plot(density(sim_weights), col = "blue", main = "Edge Weight Distribution")
+lines(density(real_weights), col = "red")
+legend("topright", legend = c("Simulated", "Real"), fill = c("blue", "red"))
+```
+
+```{r}
+# Convert to matrix
+real_mat <- as.matrix(net, attrname = "weight")
+sim_mat <- as.matrix(sim_networks[[1]], attrname = "weight")
+
+heatmap(real_mat, Rowv = NA, Colv = NA, main = "Real Network Weights")
+heatmap(sim_mat, Rowv = NA, Colv = NA, main = "Simulated Network Weights")
+```
+
+```{r}
+# Strength centrality (sum of weights)
+real_strength <- sna::degree(as.matrix(net), gmode = "digraph", ignore.eval = FALSE)
+sim_strength <- sna::degree(as.matrix(sim_networks[[1]]), gmode = "digraph", ignore.eval = FALSE)
+
+boxplot(list(Real = real_strength, Simulated = sim_strength), main = "Strength Centrality")
+```
+
+```{r}
+
+# Plot a histogram of edge weights
+hist(network::get.edge.attribute(net, "weight"), breaks = 30,
+     main = "Histogram of Edge Weights",
+     xlab = "Edge Weight",
+     col = "skyblue", border = "white")
+
+# Add a vertical line for the mean weight
+abline(v = mean(network::get.edge.attribute(net, "weight")), col = "red", lwd = 2)
+legend("topright", legend = paste("Mean =", round(mean(network::get.edge.attribute(net, "weight")), 0)),
+       col = "red", lwd = 2)
+```
+
+```{r}
+net_densities <- unlist(lapply(sim_networks, network.density))
+
+hist(net_densities, xlab = "Density", main = "", col = "lightgray")
+abline(v = network.density(net), col = "red", lwd = 3, lty = 2)
+abline(v = mean(net_densities), col = "blue", lwd = 3, lty = 1)
+```
+
+
+
+
+```{r}
+# Function to compute edge-level statistics for a given network object
+compute_edge_stats <- function(net) {
+  # Extract edge weights
+  ew <- network::get.edge.attribute(net, "weight")
+  
+  # Basic summaries
+  edge_sum    <- sum(ew)
+  edge_mean   <- mean(ew)
+  edge_sd     <- sd(ew)
+  edge_median <- median(ew)
+  edge_quantiles <- quantile(ew, probs = c(0.25, 0.5, 0.75))
+  
+  # For density calculations, get network size
+  n <- network.size(net)
+  # For directed network (exclude self-loops): total possible edges
+  total_possible_edges <- n * (n - 1)
+  
+  # Proportion of nonzero edges (binary density)
+  nonzero_edges <- sum(ew != 0)
+  edge_density <- nonzero_edges / total_possible_edges
+  
+  # Average edge weight per possible dyad (a normalized weight measure)
+  avg_weight_dyad <- edge_sum / total_possible_edges
+  
+  # Return a list of computed statistics
+  return(list(sum = edge_sum,
+              mean = edge_mean,
+              sd = edge_sd,
+              median = edge_median,
+              quantiles = edge_quantiles,
+              density = edge_density,
+              avg_weight_dyad = avg_weight_dyad))
+}
+
+```
+
+```{r}
+# Compute the edge-level statistics for the observed network
+obs_stats <- compute_edge_stats(net)
+
+# Print observed statistics
+print("Observed Edge-Level Statistics:")
+print(obs_stats)
+
+```
+
+```{r}
+#sim_networks <- simulate(fit_weight14, nsim = numSims, output = "network")
+
+# Compute statistics for each simulated network
+sim_stats <- lapply(sim_networks, compute_edge_stats)
+```
+
+
+```{r}
+sim_stats_df <- data.frame(
+  sum           = sapply(sim_stats, function(x) x$sum),
+  mean          = sapply(sim_stats, function(x) x$mean),
+  sd            = sapply(sim_stats, function(x) x$sd),
+  median        = sapply(sim_stats, function(x) x$median),
+  density       = sapply(sim_stats, function(x) x$density),
+  avg_weight_dyad = sapply(sim_stats, function(x) x$avg_weight_dyad)
+)
+
+# View the first few rows (optional)
+head(sim_stats_df)
+```
+
+```{r}
+# Set up a 2x3 plotting layout (adjust as needed)
+par(mfrow = c(2, 3))
+
+# Define statistic names and their observed values
+stat_names <- c("sum", "mean", "sd", "median", "density", "avg_weight_dyad")
+obs_values <- c(obs_stats$sum, obs_stats$mean, obs_stats$sd, 
+                obs_stats$median, obs_stats$density, obs_stats$avg_weight_dyad)
+
+# Loop through each statistic to plot its simulated distribution
+for (i in seq_along(stat_names)) {
+  hist(sim_stats_df[[stat_names[i]]],
+       main = paste("Simulated", stat_names[i]),
+       xlab = stat_names[i],
+       col = "skyblue", border = "white")
+  # Overlay the observed value as a red vertical line
+  abline(v = obs_values[i], col = "red", lwd = 2)
+  legend("topright", legend = paste("Obs =", round(obs_values[i], 2)),
+         col = "red", lwd = 2, bty = "n")
+}
+
+# Reset plot layout to default
+par(mfrow = c(1, 1))
+
+```
+
+```{r}
+p_value_sum <- mean(sim_stats_df$sum >= obs_stats$sum)
+cat("Tail-area p-value for the sum of edge weights:", p_value_sum, "\n")
+```
+
+```{r}
+compute_node_stats_efficient <- function(net) {
+  # Get number of nodes
+  num_nodes <- network.size(net)
+  
+  # Initialize vectors to store weighted and binary degrees
+  in_strength  <- numeric(num_nodes)
+  out_strength <- numeric(num_nodes)
+  binary_in_degree  <- numeric(num_nodes)
+  binary_out_degree <- numeric(num_nodes)
+  
+  # Extract edges (sender -> receiver) and their weights
+  edges <- network::as.edgelist(net)  # Returns a 2-column matrix: [sender, receiver]
+  weights <- network::get.edge.attribute(net, "weight")  # Extracts weight attribute
+  
+  # Loop through edges (memory-efficient)
+  for (e in seq_along(weights)) {
+    sender <- edges[e, 1]
+    receiver <- edges[e, 2]
+    
+    out_strength[sender] <- out_strength[sender] + weights[e]
+    in_strength[receiver] <- in_strength[receiver] + weights[e]
+    
+    # Count binary degree (each unique edge counts once)
+    binary_out_degree[sender] <- binary_out_degree[sender] + 1
+    binary_in_degree[receiver] <- binary_in_degree[receiver] + 1
+  }
+  
+  # Store summary statistics
+  summary_stats <- list(
+    mean_in_strength = mean(in_strength),
+    mean_out_strength = mean(out_strength),
+    median_in_strength = median(in_strength),
+    median_out_strength = median(out_strength),
+    mean_binary_in_degree = mean(binary_in_degree),
+    mean_binary_out_degree = mean(binary_out_degree)
+  )
+  
+  return(list(
+    in_strength = in_strength,
+    out_strength = out_strength,
+    binary_in_degree = binary_in_degree,
+    binary_out_degree = binary_out_degree,
+    summary = summary_stats
+  ))
+}
+```
+
+```{r}
+# Compute node-level statistics for the observed network
+obs_node_stats <- compute_node_stats_efficient(net)
+
+# Print out the summary statistics
+cat("Observed Node-Level Summary Statistics:\n")
+print(obs_node_stats$summary)
+```
+
+```{r}
+# Number of simulations (adjust if needed)
+numSims <- length(sim_networks)
+
+# Compute node-level statistics for each simulated network
+sim_node_stats <- lapply(sim_networks, compute_node_stats_efficient)
+
+```
+
+```{r}
+# Create a data frame of selected summary statistics from each simulation:
+sim_node_stats_df <- data.frame(
+  mean_in_strength    = sapply(sim_node_stats, function(x) x$summary$mean_in_strength),
+  mean_out_strength   = sapply(sim_node_stats, function(x) x$summary$mean_out_strength),
+  median_in_strength  = sapply(sim_node_stats, function(x) x$summary$median_in_strength),
+  median_out_strength = sapply(sim_node_stats, function(x) x$summary$median_out_strength),
+  mean_binary_in_degree  = sapply(sim_node_stats, function(x) x$summary$mean_binary_in_degree),
+  mean_binary_out_degree = sapply(sim_node_stats, function(x) x$summary$mean_binary_out_degree)
+)
+
+# View the head of the data frame (optional)
+head(sim_node_stats_df)
+```
+
+```{r}
+# Set up a 2x3 plotting layout
+par(mfrow = c(2, 3))
+
+# Define statistic names and extract observed values for each
+stat_names <- colnames(sim_node_stats_df)
+obs_values <- c(
+  obs_node_stats$summary$mean_in_strength,
+  obs_node_stats$summary$mean_out_strength,
+  obs_node_stats$summary$median_in_strength,
+  obs_node_stats$summary$median_out_strength,
+  obs_node_stats$summary$mean_binary_in_degree,
+  obs_node_stats$summary$mean_binary_out_degree
+)
+
+# Loop through each statistic to plot its simulated distribution
+for (i in seq_along(stat_names)) {
+  hist(sim_node_stats_df[[stat_names[i]]],
+       main = paste("Simulated", stat_names[i]),
+       xlab = stat_names[i],
+       col = "skyblue", border = "white")
+  abline(v = obs_values[i], col = "red", lwd = 2)
+  legend("topright", legend = paste("Obs =", round(obs_values[i], 2)),
+         col = "red", lwd = 2, bty = "n")
+}
+
+# Reset plotting layout
+par(mfrow = c(1, 1))
+
+```
+
+```{r}
+p_value_mean_in <- mean(sim_node_stats_df$mean_in_strength >= obs_node_stats$summary$mean_in_strength)
+cat("Tail-area p-value for mean in-strength:", p_value_mean_in, "\n")
+```
+
+
+
