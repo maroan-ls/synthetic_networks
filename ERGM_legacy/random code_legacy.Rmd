@@ -1,0 +1,87 @@
+---
+title: "graph exploratory analysis"
+output: html_notebook
+---
+
+```{r}
+## Subgraph of XX most common lender with their borrowers 
+
+# Select top 10 nodes by out-degree
+top_out_nodes <- names(sort(out_degree, decreasing = TRUE)[1:30])
+
+# Use `neighbors()` to find the neighbors for each top node
+all_neighbors <- lapply(top_out_nodes, function(node) {
+  as.character(neighbors(g_l, v = node, mode = "all"))  # Get neighbors of the node
+})
+
+# Combine the top nodes and their neighbors
+all_nodes <- unique(c(top_out_nodes, unlist(all_neighbors)))
+
+# Create a subgraph with the selected nodes
+sub_g <- induced_subgraph(g_l, vids = V(g_l)[name %in% all_nodes])
+
+# Identify vertices with at least one edge
+connected_nodes <- V(sub_g)[igraph::degree(sub_g, mode = "all") > 0]
+
+# Create a new subgraph with only the connected nodes
+sub_g_connected <- induced_subgraph(sub_g, vids = connected_nodes)
+#> visNetwork::visIgraph(sub_g_connected)
+```
+
+```{r}
+sub_g <- delete_edge_attr(sub_g, "Roles")
+sub_g <- delete_edge_attr(sub_g, "AssignedLoanShare")
+sub_g_sf <- igraph::simplify(
+  sub_g, 
+  edge.attr.comb = list(weight = "sum"),
+  remove.loops = TRUE
+)
+```
+
+
+```{r}
+#Number of vertices and edges
+vcount(sub_g_sf)
+ecount(sub_g_sf)
+
+count_components(sub_g_sf)
+is_connected(sub_g_sf)
+print("Multiedges exist:")
+any_multiple(sub_g_sf)
+```
+
+
+```{r}
+node_names <- network::get.vertex.attribute(net, "vertex.names")
+```
+
+```{r}
+#node_df <- unique(df_agg[, c("Lender", "Sector", "Region", "LenderMarket")])  # Adjust as needed
+```
+
+
+```{r}
+vcount(g_l_s)
+vcount(g_l)
+vcount(sub_g)
+ecount(g_l)
+```
+
+```{r}
+visNetwork::visIgraph(g_topx) %>%
+  visIgraphLayout(layout = "layout_in_circle")
+```
+
+
+
+```{r}
+visNetwork::visIgraph(g_l_s) %>%
+  visIgraphLayout(layout = "layout_with_lgl")
+```
+
+
+```{r}
+# Calculate out-degree and in-degree directly
+out_degree <- igraph::degree(g, mode = "out")
+in_degree <- igraph::degree(g, mode = "in")
+```
