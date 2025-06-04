@@ -194,7 +194,7 @@ net_l_s <- intergraph::asNetwork(g_l_s)
 net_topx <- intergraph::asNetwork(g_topx)
 net_sib <- intergraph::asNetwork(g_sib)
 
-network::set.edge.attribute(net_l_S, "weight", igraph::get.edge.attribute(g_l_s, "weight"))
+network::set.edge.attribute(net_l_s, "weight", igraph::get.edge.attribute(g_l_s, "weight"))
 
 # Verify edge weights (replace "weight" with actual edge attribute name)
 #network::set.edge.attribute(net, "weight", igraph::get.edge.attribute(g_l, "weight"))
@@ -203,8 +203,8 @@ network::set.edge.attribute(net_l_S, "weight", igraph::get.edge.attribute(g_l_s,
 
 ```{r}
 #Check model formation worked as intended
-summary(net)
-network::list.edge.attributes(net)
+summary(net_l_s)
+network::list.edge.attributes(net_l_s)
 ```
 
 

@@ -11,7 +11,7 @@
 
 
 
-<title>Processing Network</title>
+<title>R Notebook</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1746,332 +1746,242 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Processing Network</h1>
+<h1 class="title toc-ignore">R Notebook</h1>
 
 </div>
 
 
 <!-- rnb-text-begin -->
-<p>This notebooks Input: Dataframe Output: - g: igraph from dataframe -
-g_l: largest connected component of g - g_l_s: largest connected
-simplified component igraph from g -&gt; g_l -&gt; g_l_s (summed edges =
-simplified) - g_topx: most important X amount of banks simplified g_l_s
--&gt; g_topx - g_sib : only systemically important banks, simplified
-g_l_s -&gt; g_sib</p>
-<ul>
-<li>net_l_s: network object of g_l_s</li>
-<li>net_topx: network object of g_topx</li>
-<li>net_sib: network object of g_sib</li>
-</ul>
-<!-- rnb-text-end -->
-<!-- rnb-text-begin -->
-<p>Read and process data</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJMUpsWVdScGJtY2dhVzRnY0hKdlkyVnpjMlZrSUdSaGRHRmNibVJtSUR3dElISmxZV1F1WTNOMktGd2lMaTlRY205alpYTnphVzVuTDNCeWIyTmxjM05sWkY5c2IyRnVYM1l6TG1OemRsd2lLVnh1WUdCZ0luMD0gLS0+XG5cbmBgYHJcbiNSZWFkaW5nIGluIHByb2Nlc3NlZCBkYXRhXG5kZiA8LSByZWFkLmNzdihcIi4vUHJvY2Vzc2luZy9wcm9jZXNzZWRfbG9hbl92My5jc3ZcIilcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI1JlYWRpbmcgaW4gcHJvY2Vzc2VkIGRhdGFcbmRmIDwtIHJlYWQuY3N2KFwiLi9Qcm9jZXNzaW5nL3Byb2Nlc3NlZF9sb2FuX3YzLmNzdlwiKVxuYGBgIn0= -->
-<pre class="r"><code>#Reading in processed data
-df &lt;- read.csv(&quot;./Processing/processed_loan_v3.csv&quot;)</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJwYm5OMFlXeHNMbkJoWTJ0aFoyVnpLRndpYzNSaGRHNWxkRndpS1Z4dUl5QnBibk4wWVd4c0xuQmhZMnRoWjJWektGd2laWEpuYlM1amIzVnVkRndpS1Z4dUl5QnBibk4wWVd4c0xuQmhZMnRoWjJWektGd2lhV2R5WVhCb1hDSXBYRzRqSUdsdWMzUmhiR3d1Y0dGamEyRm5aWE1vWENKdVpYUjNiM0pyWENJcFhHNGpJR2x1YzNSaGJHd3VjR0ZqYTJGblpYTW9YQ0owWlhKbmJWd2lLVnh1SXlCcGJuTjBZV3hzTG5CaFkydGhaMlZ6S0Z3aVpYSm5iUzV0ZFd4MGFWd2lLVnh1WUdCZ0luMD0gLS0+XG5cbmBgYHJcbiMgaW5zdGFsbC5wYWNrYWdlcyhcInN0YXRuZXRcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcImVyZ20uY291bnRcIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcImlncmFwaFwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwibmV0d29ya1wiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwidGVyZ21cIilcbiMgaW5zdGFsbC5wYWNrYWdlcyhcImVyZ20ubXVsdGlcIilcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBpbnN0YWxsLnBhY2thZ2VzKFwic3RhdG5ldFwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiZXJnbS5jb3VudFwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiaWdyYXBoXCIpXG4jIGluc3RhbGwucGFja2FnZXMoXCJuZXR3b3JrXCIpXG4jIGluc3RhbGwucGFja2FnZXMoXCJ0ZXJnbVwiKVxuIyBpbnN0YWxsLnBhY2thZ2VzKFwiZXJnbS5tdWx0aVwiKVxuYGBgIn0= -->
+<pre class="r"><code># install.packages(&quot;statnet&quot;)
+# install.packages(&quot;ergm.count&quot;)
+# install.packages(&quot;igraph&quot;)
+# install.packages(&quot;network&quot;)
+# install.packages(&quot;tergm&quot;)
+# install.packages(&quot;ergm.multi&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJIY205MWNDQmhibVFnYzNWdElIUm9aU0JzYjJGdWN5QjBiMmRsZEdobGNpd2djbVZ1WVcxbElIUm9aU0JqYjJ4MWJXNXpYRzVrWmw5aFoyY2dQQzBnWkdZZ0pUNGxYRzRnSUdkeWIzVndYMko1S0V4dllXNUpSQ3dnVEdWdVpHVnlMQ0JDYjNKeWIzZGxjaWtnSlQ0bFhHNGdJSE4xYlcxaGNtbHpaU2hjYmlBZ1FYTnphV2R1WldSTWIyRnVVMmhoY21VZ1BTQnpkVzBvUVhOemFXZHVaV1JNYjJGdVUyaGhjbVVwTEZ4dUlDQlNiMnhsY3lBOUlIQmhjM1JsS0hWdWFYRjFaU2hTYjJ4bEtTd2dZMjlzYkdGd2MyVWdQU0JjSWl3Z1hDSXBMRnh1SUNCVFpXTjBiM0lnUFNCbWFYSnpkQ2hUWldOMGIzSXBMRnh1SUNCTllYUjFjbWwwZVVSaGRHVWdQU0JtYVhKemRDaE5ZWFIxY21sMGVTNUVZWFJsS1N4Y2JpQWdTWE56ZFdWRVlYUmxJRDBnWm1seWMzUW9TWE56ZFdVdVJHRjBaU2tzWEc0Z0lFeGxibVJsY2xKbFoybHZiaUE5SUdacGNuTjBLRXhsYm1SbGNsSmxaMmx2Ymlrc1hHNGdJRXhsYm1SbGNrMWhjbXRsZENBOUlHWnBjbk4wS0V4bGJtUmxjazFoY210bGRDa3NJRnh1SUNCQ2IzSnliM2RsY2tSdmJXbGphV3hsSUQwZ1ptbHljM1FvUW05eWNtOTNaWEpFYjIxcFkybHNaU2tzWEc0Z0lGUnlZVzVqYUdWVWVYQmxJRDBnWm1seWMzUW9WSEpoYm1Ob1pWUjVjR1VwTEZ4dUlDQlVjbUZ1WTJobFEzVnljbVZ1WTNrZ1BTQm1hWEp6ZENoVWNtRnVZMmhsUTNWeWNtVnVZM2twTEZ4dUlDQlRaVzVwYjNKcGRIa2dQU0JtYVhKemRDaFRaVzVwYjNKcGRIa3BYRzRnSUNNZ1pYUmpMaTR1WEc0Z0lDbGNibUJnWUNKOSAtLT5cblxuYGBgclxuIyBHcm91cCBhbmQgc3VtIHRoZSBsb2FucyB0b2dldGhlciwgcmVuYW1lIHRoZSBjb2x1bW5zXG5kZl9hZ2cgPC0gZGYgJT4lXG4gIGdyb3VwX2J5KExvYW5JRCwgTGVuZGVyLCBCb3Jyb3dlcikgJT4lXG4gIHN1bW1hcmlzZShcbiAgQXNzaWduZWRMb2FuU2hhcmUgPSBzdW0oQXNzaWduZWRMb2FuU2hhcmUpLFxuICBSb2xlcyA9IHBhc3RlKHVuaXF1ZShSb2xlKSwgY29sbGFwc2UgPSBcIiwgXCIpLFxuICBTZWN0b3IgPSBmaXJzdChTZWN0b3IpLFxuICBNYXR1cml0eURhdGUgPSBmaXJzdChNYXR1cml0eS5EYXRlKSxcbiAgSXNzdWVEYXRlID0gZmlyc3QoSXNzdWUuRGF0ZSksXG4gIExlbmRlclJlZ2lvbiA9IGZpcnN0KExlbmRlclJlZ2lvbiksXG4gIExlbmRlck1hcmtldCA9IGZpcnN0KExlbmRlck1hcmtldCksIFxuICBCb3Jyb3dlckRvbWljaWxlID0gZmlyc3QoQm9ycm93ZXJEb21pY2lsZSksXG4gIFRyYW5jaGVUeXBlID0gZmlyc3QoVHJhbmNoZVR5cGUpLFxuICBUcmFuY2hlQ3VycmVuY3kgPSBmaXJzdChUcmFuY2hlQ3VycmVuY3kpLFxuICBTZW5pb3JpdHkgPSBmaXJzdChTZW5pb3JpdHkpXG4gICMgZXRjLi4uXG4gIClcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBHcm91cCBhbmQgc3VtIHRoZSBsb2FucyB0b2dldGhlciwgcmVuYW1lIHRoZSBjb2x1bW5zXG5kZl9hZ2cgPC0gZGYgJT4lXG4gIGdyb3VwX2J5KExvYW5JRCwgTGVuZGVyLCBCb3Jyb3dlcikgJT4lXG4gIHN1bW1hcmlzZShcbiAgQXNzaWduZWRMb2FuU2hhcmUgPSBzdW0oQXNzaWduZWRMb2FuU2hhcmUpLFxuICBSb2xlcyA9IHBhc3RlKHVuaXF1ZShSb2xlKSwgY29sbGFwc2UgPSBcIiwgXCIpLFxuICBTZWN0b3IgPSBmaXJzdChTZWN0b3IpLFxuICBNYXR1cml0eURhdGUgPSBmaXJzdChNYXR1cml0eS5EYXRlKSxcbiAgSXNzdWVEYXRlID0gZmlyc3QoSXNzdWUuRGF0ZSksXG4gIExlbmRlclJlZ2lvbiA9IGZpcnN0KExlbmRlclJlZ2lvbiksXG4gIExlbmRlck1hcmtldCA9IGZpcnN0KExlbmRlck1hcmtldCksIFxuICBCb3Jyb3dlckRvbWljaWxlID0gZmlyc3QoQm9ycm93ZXJEb21pY2lsZSksXG4gIFRyYW5jaGVUeXBlID0gZmlyc3QoVHJhbmNoZVR5cGUpLFxuICBUcmFuY2hlQ3VycmVuY3kgPSBmaXJzdChUcmFuY2hlQ3VycmVuY3kpLFxuICBTZW5pb3JpdHkgPSBmaXJzdChTZW5pb3JpdHkpXG4gICMgZXRjLi4uXG4gIClcbmBgYCJ9 -->
-<pre class="r"><code># Group and sum the loans together, rename the columns
-df_agg &lt;- df %&gt;%
-  group_by(LoanID, Lender, Borrower) %&gt;%
-  summarise(
-  AssignedLoanShare = sum(AssignedLoanShare),
-  Roles = paste(unique(Role), collapse = &quot;, &quot;),
-  Sector = first(Sector),
-  MaturityDate = first(Maturity.Date),
-  IssueDate = first(Issue.Date),
-  LenderRegion = first(LenderRegion),
-  LenderMarket = first(LenderMarket), 
-  BorrowerDomicile = first(BorrowerDomicile),
-  TrancheType = first(TrancheType),
-  TrancheCurrency = first(TrancheCurrency),
-  Seniority = first(Seniority)
-  # etc...
-  )</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCBoYXMgZ3JvdXBlZCBvdXRwdXQgYnkgJ0xvYW5JRCcsICdMZW5kZXInLiBZb3UgY2FuIG92ZXJyaWRlIHVzaW5nIHRoZSBgLmdyb3Vwc2AgYXJndW1lbnQuXG4ifQ== -->
-<pre><code>`summarise()` has grouped output by &#39;LoanID&#39;, &#39;Lender&#39;. You can override using the `.groups` argument.</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Make g from dataframe</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJMmNnWW1WcGJtY2dkR2hsSUd4aGNtZGxJR1JoZEdGbWNtRnRaU0JtY205dElIUm9aU0J3Y205alpYTnpaV1FnWkdGMFlTQjBkWEp1WldRZ2FXNTBieUJoYmlCcFozSmhjR2dnYjJKcVpXTjBMQ0J1YjNRZ2NISnZZMlZ6YzJWa1hHNW5JRHd0SUdkeVlYQm9YMlp5YjIxZlpHRjBZVjltY21GdFpTaGNiaUFnWkNBOUlHUm1YMkZuWjFzc0lHTW9YQ0pNWlc1a1pYSmNJaXdnWENKQ2IzSnliM2RsY2x3aUxDQmNJa0Z6YzJsbmJtVmtURzloYmxOb1lYSmxYQ0lzSUZ3aVVtOXNaWE5jSWlsZExGeHVJQ0JrYVhKbFkzUmxaQ0E5SUZSU1ZVVmNiaWxjYmx4dUl5QlRaWFFnZEdobElDZEJjM05wWjI1bFpFeHZZVzVUYUdGeVpTY2dZWE1nZEdobElHVmtaMlVnZDJWcFoyaDBYRzVGS0djcEpIZGxhV2RvZENBOExTQkZLR2NwSkVGemMybG5ibVZrVEc5aGJsTm9ZWEpsWEc1Y2JpTWdUM0IwYVc5dVlXeHNlU0JyWldWd0lDZFNiMnhsY3ljZ1lYTWdZVzRnWldSblpTQmhkSFJ5YVdKMWRHVTZYRzRqUlNobktTUnliMnhsY3lBOExTQmtabDloWjJja1VtOXNaWE5jYm1CZ1lDSjkgLS0+XG5cbmBgYHJcbiNnIGJlaW5nIHRoZSBsYXJnZSBkYXRhZnJhbWUgZnJvbSB0aGUgcHJvY2Vzc2VkIGRhdGEgdHVybmVkIGludG8gYW4gaWdyYXBoIG9iamVjdCwgbm90IHByb2Nlc3NlZFxuZyA8LSBncmFwaF9mcm9tX2RhdGFfZnJhbWUoXG4gIGQgPSBkZl9hZ2dbLCBjKFwiTGVuZGVyXCIsIFwiQm9ycm93ZXJcIiwgXCJBc3NpZ25lZExvYW5TaGFyZVwiLCBcIlJvbGVzXCIpXSxcbiAgZGlyZWN0ZWQgPSBUUlVFXG4pXG5cbiMgU2V0IHRoZSAnQXNzaWduZWRMb2FuU2hhcmUnIGFzIHRoZSBlZGdlIHdlaWdodFxuRShnKSR3ZWlnaHQgPC0gRShnKSRBc3NpZ25lZExvYW5TaGFyZVxuXG4jIE9wdGlvbmFsbHkga2VlcCAnUm9sZXMnIGFzIGFuIGVkZ2UgYXR0cmlidXRlOlxuI0UoZykkcm9sZXMgPC0gZGZfYWdnJFJvbGVzXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2cgYmVpbmcgdGhlIGxhcmdlIGRhdGFmcmFtZSBmcm9tIHRoZSBwcm9jZXNzZWQgZGF0YSB0dXJuZWQgaW50byBhbiBpZ3JhcGggb2JqZWN0LCBub3QgcHJvY2Vzc2VkXG5nIDwtIGdyYXBoX2Zyb21fZGF0YV9mcmFtZShcbiAgZCA9IGRmX2FnZ1ssIGMoXCJMZW5kZXJcIiwgXCJCb3Jyb3dlclwiLCBcIkFzc2lnbmVkTG9hblNoYXJlXCIsIFwiUm9sZXNcIildLFxuICBkaXJlY3RlZCA9IFRSVUVcbilcblxuIyBTZXQgdGhlICdBc3NpZ25lZExvYW5TaGFyZScgYXMgdGhlIGVkZ2Ugd2VpZ2h0XG5FKGcpJHdlaWdodCA8LSBFKGcpJEFzc2lnbmVkTG9hblNoYXJlXG5cbiMgT3B0aW9uYWxseSBrZWVwICdSb2xlcycgYXMgYW4gZWRnZSBhdHRyaWJ1dGU6XG4jRShnKSRyb2xlcyA8LSBkZl9hZ2ckUm9sZXNcbmBgYCJ9 -->
-<pre class="r"><code>#g being the large dataframe from the processed data turned into an igraph object, not processed
-g &lt;- graph_from_data_frame(
-  d = df_agg[, c(&quot;Lender&quot;, &quot;Borrower&quot;, &quot;AssignedLoanShare&quot;, &quot;Roles&quot;)],
-  directed = TRUE
-)
-
-# Set the &#39;AssignedLoanShare&#39; as the edge weight
-E(g)$weight &lt;- E(g)$AssignedLoanShare
-
-# Optionally keep &#39;Roles&#39; as an edge attribute:
-#E(g)$roles &lt;- df_agg$Roles</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHViR2xpY21GeWVTaGxjbWR0S1Z4dWJHbGljbUZ5ZVNodVpYUjNiM0pyS1Z4dWJHbGljbUZ5ZVNobGNtZHRMbU52ZFc1MEtWeHViR2xpY21GeWVTaHpkR0YwYm1WMEtWeHViR2xpY21GeWVTaDBaWEpuYlNsY2JtQmdZQ0o5IC0tPlxuXG5gYGByXG5saWJyYXJ5KGVyZ20pXG5saWJyYXJ5KG5ldHdvcmspXG5saWJyYXJ5KGVyZ20uY291bnQpXG5saWJyYXJ5KHN0YXRuZXQpXG5saWJyYXJ5KHRlcmdtKVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShlcmdtKVxubGlicmFyeShuZXR3b3JrKVxubGlicmFyeShlcmdtLmNvdW50KVxubGlicmFyeShzdGF0bmV0KVxubGlicmFyeSh0ZXJnbSlcbmBgYCJ9 -->
+<pre class="r"><code>library(ergm)
+library(network)
+library(ergm.count)
+library(statnet)
+library(tergm)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Create subgraph g_l being the largest connected component of g</p>
-<!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJKWkdWdWRHbG1lU0JqYjI1dVpXTjBaV1FnWTI5dGNHOXVaVzUwYzF4dVkyOXRjRzl1Wlc1MGN5QThMU0JwWjNKaGNHZzZPbU52YlhCdmJtVnVkSE1vWVhOZmRXNWthWEpsWTNSbFpDaG5LU2xjYmx4dUl5QkdhVzVrSUhSb1pTQnphWHBsSUc5bUlIUm9aU0JzWVhKblpYTjBJR052Ym01bFkzUmxaQ0JqYjIxd2IyNWxiblJjYm5CeWFXNTBLRzFoZUNoamIyMXdiMjVsYm5SekpHTnphWHBsS1NsY2JtQmdZQ0o5IC0tPlxuXG5gYGByXG4jIElkZW50aWZ5IGNvbm5lY3RlZCBjb21wb25lbnRzXG5jb21wb25lbnRzIDwtIGlncmFwaDo6Y29tcG9uZW50cyhhc191bmRpcmVjdGVkKGcpKVxuXG4jIEZpbmQgdGhlIHNpemUgb2YgdGhlIGxhcmdlc3QgY29ubmVjdGVkIGNvbXBvbmVudFxucHJpbnQobWF4KGNvbXBvbmVudHMkY3NpemUpKVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBJZGVudGlmeSBjb25uZWN0ZWQgY29tcG9uZW50c1xuY29tcG9uZW50cyA8LSBpZ3JhcGg6OmNvbXBvbmVudHMoYXNfdW5kaXJlY3RlZChnKSlcblxuIyBGaW5kIHRoZSBzaXplIG9mIHRoZSBsYXJnZXN0IGNvbm5lY3RlZCBjb21wb25lbnRcbnByaW50KG1heChjb21wb25lbnRzJGNzaXplKSlcbmBgYCJ9 -->
-<pre class="r"><code># Identify connected components
-components &lt;- igraph::components(as_undirected(g))
-
-# Find the size of the largest connected component
-print(max(components$csize))</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVabWwwWDNkbGFXZG9kREU1SUR3dElHVnlaMjBvYm1WMFgzUnZjSGdnZmlCbFpHZGxjeUFySUcxMWRIVmhiQ2htYjNKdElEMGdYQ0p1WVdKelpHbG1abHdpS1N4Y2JpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSEpsYzNCdmJuTmxJRDBnWENKM1pXbG5hSFJjSWl3Z1hHNGdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0J5WldabGNtVnVZMlVnUFNCK1IyVnZiV1YwY21sakxGeHVJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnWTI5dWRISnZiQ0E5SUdOdmJuUnliMnd1WlhKbmJTaE5RMDFETG5OaGJYQnNaWE5wZW1VZ1BTQXlNREF3TEZ4dUlDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCelpXVmtJRDBnTVRJektTbGNibUJnWUNKOSAtLT5cblxuYGBgclxuZml0X3dlaWdodDE5IDwtIGVyZ20obmV0X3RvcHggfiBlZGdlcyArIG11dHVhbChmb3JtID0gXCJuYWJzZGlmZlwiKSxcbiAgICAgICAgICAgICAgICAgICAgIHJlc3BvbnNlID0gXCJ3ZWlnaHRcIiwgXG4gICAgICAgICAgICAgICAgICAgICByZWZlcmVuY2UgPSB+R2VvbWV0cmljLFxuICAgICAgICAgICAgICAgICAgICAgY29udHJvbCA9IGNvbnRyb2wuZXJnbShNQ01DLnNhbXBsZXNpemUgPSAyMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWVkID0gMTIzKSlcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0X3dlaWdodDE5IDwtIGVyZ20obmV0X3RvcHggfiBlZGdlcyArIG11dHVhbChmb3JtID0gXCJuYWJzZGlmZlwiKSxcbiAgICAgICAgICAgICAgICAgICAgIHJlc3BvbnNlID0gXCJ3ZWlnaHRcIiwgXG4gICAgICAgICAgICAgICAgICAgICByZWZlcmVuY2UgPSB+R2VvbWV0cmljLFxuICAgICAgICAgICAgICAgICAgICAgY29udHJvbCA9IGNvbnRyb2wuZXJnbShNQ01DLnNhbXBsZXNpemUgPSAyMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWVkID0gMTIzKSlcbmBgYCJ9 -->
+<pre class="r"><code>fit_weight19 &lt;- ergm(net_topx ~ edges + mutual(form = &quot;nabsdiff&quot;),
+                     response = &quot;weight&quot;, 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                            seed = 123))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDM2NzRcbiJ9 -->
-<pre><code>[1] 3674</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXHUwMDFiRzM7QmVzdCB2YWxpZCBwcm9wb3NhbCDigJhEaXNjVE5U4oCZIGNhbm5vdCB0YWtlIGludG8gYWNjb3VudCBoaW50KHMpIOKAmHRyaWFkaWPigJkuXG5cdTAwMWJnXHUwMDFiRzM7U3RhcnRpbmcgY29udHJhc3RpdmUgZGl2ZXJnZW5jZSBlc3RpbWF0aW9uIHZpYSBDRC1NQ01MRTpcblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gMSBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgUC12YWx1ZTo1LjFlLTEzNFxuXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczO1RoZSBsb2ctbGlrZWxpaG9vZCBpbXByb3ZlZCBieSA5MzM0LlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiAyIG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBQLXZhbHVlOjMuMWUtMDNcblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4xNjEyLlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiAzIG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBQLXZhbHVlOjQuN2UtMDFcblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4wMDA5OTMxLlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiA0IG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBQLXZhbHVlOjIuOWUtMDFcblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4wMDIxOTkuXG5cdTAwMWJnXHUwMDFiRzM7SXRlcmF0aW9uIDUgb2YgYXQgbW9zdCA2MDpcblx1MDAxYmdcdTAwMWJHMztDb252ZXJnZW5jZSB0ZXN0IFAtdmFsdWU6Mi4zZS0wMVxuXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczO1RoZSBsb2ctbGlrZWxpaG9vZCBpbXByb3ZlZCBieSAwLjAwMjUyLlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiA2IG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBQLXZhbHVlOjguOGUtMDJcblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4wMDY3My5cblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gNyBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgUC12YWx1ZTo4LjhlLTAxXG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgZGV0ZWN0ZWQuIFN0b3BwaW5nLlxuXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczO1RoZSBsb2ctbGlrZWxpaG9vZCBpbXByb3ZlZCBieSA8IDAuMDAwMS5cblx1MDAxYmdcdTAwMWJHMztGaW5pc2hlZCBDRC5cblx1MDAxYmdcdTAwMWJHMjtcdTAwMWJIMjtXYXJuaW5nXHUwMDFiaDogTW9kZWwgc3RhdGlzdGljcyDigJhub256ZXJv4oCZIGFyZSBub3QgdmFyeWluZy4gVGhpcyBtYXkgaW5kaWNhdGUgdGhhdCB0aGUgb2JzZXJ2ZWQgZGF0YSBvY2N1cGllcyBhbiBleHRyZW1lIHBvaW50IGluIHRoZSBzYW1wbGUgc3BhY2Ugb3IgdGhhdCB0aGUgZXN0aW1hdGlvbiBoYXMgcmVhY2hlZCBhIGRlYWQtZW5kIGNvbmZpZ3VyYXRpb24uXHUwMDFiZ1xuXHUwMDFiRzM7U3RhcnRpbmcgTW9udGUgQ2FybG8gbWF4aW11bSBsaWtlbGlob29kIGVzdGltYXRpb24gKE1DTUxFKTpcblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gMSBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO01vZGVsIHN0YXRpc3RpY3Mg4oCYbm9uemVyb+KAmSBhcmUgbm90IHZhcnlpbmcuIFRoaXMgbWF5IGluZGljYXRlIHRoYXQgdGhlIG9ic2VydmVkIGRhdGEgb2NjdXBpZXMgYW4gZXh0cmVtZSBwb2ludCBpbiB0aGUgc2FtcGxlIHNwYWNlIG9yIHRoYXQgdGhlIGVzdGltYXRpb24gaGFzIHJlYWNoZWQgYSBkZWFkLWVuZCBjb25maWd1cmF0aW9uLlxuXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczO09wdGltaXppbmcgd2l0aCBzdGVwIGxlbmd0aCAxLjAwMDAuXG5cdTAwMWJnXHUwMDFiRzM7VGhlIGxvZy1saWtlbGlob29kIGltcHJvdmVkIGJ5IDwgMC4wMDAxLlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgcC12YWx1ZTogPCAwLjAwMDEuIFx1MDAxYmdcdTAwMWJHMztDb252ZXJnZWQgd2l0aCA5OSUgY29uZmlkZW5jZS5cblx1MDAxYmdcdTAwMWJHMztGaW5pc2hlZCBNQ01MRS5cblx1MDAxYmdcdTAwMWJHMztFdmFsdWF0aW5nIGxvZy1saWtlbGlob29kIGF0IHRoZSBlc3RpbWF0ZS4gXHUwMDFiZ1x1MDAxYkczO1NldHRpbmcgdXAgYnJpZGdlIHNhbXBsaW5nLi4uXG5cdTAwMWJnXHUwMDFiRzM7QmVzdCB2YWxpZCBwcm9wb3NhbCDigJhEaXNjVE5U4oCZIGNhbm5vdCB0YWtlIGludG8gYWNjb3VudCBoaW50KHMpIOKAmHRyaWFkaWPigJkuXG5cdTAwMWJnXHUwMDFiRzM7VXNpbmcgMTYgYnJpZGdlczogXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczOzIgXHUwMDFiZ1x1MDAxYkczOzMgXHUwMDFiZ1x1MDAxYkczOzQgXHUwMDFiZ1x1MDAxYkczOzUgXHUwMDFiZ1x1MDAxYkczOzYgXHUwMDFiZ1x1MDAxYkczOzcgXHUwMDFiZ1x1MDAxYkczOzggXHUwMDFiZ1x1MDAxYkczOzkgXHUwMDFiZ1x1MDAxYkczOzEwIFx1MDAxYmdcdTAwMWJHMzsxMSBcdTAwMWJnXHUwMDFiRzM7MTIgXHUwMDFiZ1x1MDAxYkczOzEzIFx1MDAxYmdcdTAwMWJHMzsxNCBcdTAwMWJnXHUwMDFiRzM7MTUgXHUwMDFiZ1x1MDAxYkczOzE2IFx1MDAxYmdcdTAwMWJHMzsuXG5cdTAwMWJnXHUwMDFiRzM7Tm90ZTogTnVsbCBtb2RlbCBsaWtlbGlob29kIGNhbGN1bGF0aW9uIGlzIG5vdCBpbXBsZW1lbnRlZCBmb3IgdmFsdWVkIEVSR01zIGF0IHRoaXNcbnRpbWUuICBUaGlzIG1lYW5zIHRoYXQgYWxsIGxpa2VsaWhvb2QtYmFzZWQgaW5mZXJlbmNlIChMUlQsIEFuYWx5c2lzIG9mIERldmlhbmNlLFxuQUlDLCBCSUMsIGV0Yy4pIGlzIG9ubHkgdmFsaWQgYmV0d2VlbiBtb2RlbHMgd2l0aCB0aGUgc2FtZSByZWZlcmVuY2UgZGlzdHJpYnV0aW9uXG5hbmQgY29uc3RyYWludHMuXG5cdTAwMWJnXHUwMDFiRzM7XG5cdTAwMWJnXHUwMDFiRzM7VGhpcyBtb2RlbCB3YXMgZml0IHVzaW5nIE1DTUMuICBUbyBleGFtaW5lIG1vZGVsIGRpYWdub3N0aWNzIGFuZCBjaGVjayBmb3JcbmRlZ2VuZXJhY3ksIHVzZSB0aGUgbWNtYy5kaWFnbm9zdGljcygpIGZ1bmN0aW9uLlxuXHUwMDFiZ1xuIn0= -->
+<pre><code>G3;Best valid proposal ‘DiscTNT’ cannot take into account hint(s) ‘triadic’.
+gG3;Starting contrastive divergence estimation via CD-MCMLE:
+gG3;Iteration 1 of at most 60:
+gG3;Convergence test P-value:5.1e-134
+gG3;1 gG3;The log-likelihood improved by 9334.
+gG3;Iteration 2 of at most 60:
+gG3;Convergence test P-value:3.1e-03
+gG3;1 gG3;The log-likelihood improved by 0.1612.
+gG3;Iteration 3 of at most 60:
+gG3;Convergence test P-value:4.7e-01
+gG3;1 gG3;The log-likelihood improved by 0.0009931.
+gG3;Iteration 4 of at most 60:
+gG3;Convergence test P-value:2.9e-01
+gG3;1 gG3;The log-likelihood improved by 0.002199.
+gG3;Iteration 5 of at most 60:
+gG3;Convergence test P-value:2.3e-01
+gG3;1 gG3;The log-likelihood improved by 0.00252.
+gG3;Iteration 6 of at most 60:
+gG3;Convergence test P-value:8.8e-02
+gG3;1 gG3;The log-likelihood improved by 0.00673.
+gG3;Iteration 7 of at most 60:
+gG3;Convergence test P-value:8.8e-01
+gG3;Convergence detected. Stopping.
+gG3;1 gG3;The log-likelihood improved by &lt; 0.0001.
+gG3;Finished CD.
+gG2;H2;Warningh: Model statistics ‘nonzero’ are not varying. This may indicate that the observed data occupies an extreme point in the sample space or that the estimation has reached a dead-end configuration.g
+G3;Starting Monte Carlo maximum likelihood estimation (MCMLE):
+gG3;Iteration 1 of at most 60:
+gG3;Model statistics ‘nonzero’ are not varying. This may indicate that the observed data occupies an extreme point in the sample space or that the estimation has reached a dead-end configuration.
+gG3;1 gG3;Optimizing with step length 1.0000.
+gG3;The log-likelihood improved by &lt; 0.0001.
+gG3;Convergence test p-value: &lt; 0.0001. gG3;Converged with 99% confidence.
+gG3;Finished MCMLE.
+gG3;Evaluating log-likelihood at the estimate. gG3;Setting up bridge sampling...
+gG3;Best valid proposal ‘DiscTNT’ cannot take into account hint(s) ‘triadic’.
+gG3;Using 16 bridges: gG3;1 gG3;2 gG3;3 gG3;4 gG3;5 gG3;6 gG3;7 gG3;8 gG3;9 gG3;10 gG3;11 gG3;12 gG3;13 gG3;14 gG3;15 gG3;16 gG3;.
+gG3;Note: Null model likelihood calculation is not implemented for valued ERGMs at this
+time.  This means that all likelihood-based inference (LRT, Analysis of Deviance,
+AIC, BIC, etc.) is only valid between models with the same reference distribution
+and constraints.
+gG3;
+gG3;This model was fit using MCMC.  To examine model diagnostics and check for
+degeneracy, use the mcmc.diagnostics() function.
+g</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJME52ZFd4a0lIVnpaU0JzWVhKblpYTjBYMk52YlhCdmJtVnVkQ2dwSUdKMWRDQmtiMlZ6SUc1dmRDQnlaWFJoYVc0Z1ZtVnlkR1Y0U1VRZ2IyWWdiM0pwWjJsdVlXd2daM0poY0dnZ0xTQmpiM1ZzWkNCaVpTQjFjMlZrSUd4aGRHVnlJR2x6SUc1dmRDQnVaV1ZrWldSY2JseHVJeUJHYVc1a0lIUm9aU0JqYjIxd2IyNWxiblFnU1VRZ2IyWWdkR2hsSUd4aGNtZGxjM1FnWTI5dWJtVmpkR1ZrSUdOdmJYQnZibVZ1ZEZ4dWJHRnlaMlZ6ZEY5amIyMXdiMjVsYm5SZmFXUWdQQzBnZDJocFkyZ3ViV0Y0S0dOdmJYQnZibVZ1ZEhNa1kzTnBlbVVwWEc1Y2JpTWdRM0psWVhSbElHRWdjM1ZpWjNKaGNHZ2diMllnZEdobElHeGhjbWRsYzNRZ1kyOXVibVZqZEdWa0lHTnZiWEJ2Ym1WdWRGeHVaMTlzSUR3dElHbHVaSFZqWldSZmMzVmlaM0poY0dnb1p5d2dkbWxrY3lBOUlIZG9hV05vS0dOdmJYQnZibVZ1ZEhNa2JXVnRZbVZ5YzJocGNDQTlQU0JzWVhKblpYTjBYMk52YlhCdmJtVnVkRjlwWkNrcFhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxuI0NvdWxkIHVzZSBsYXJnZXN0X2NvbXBvbmVudCgpIGJ1dCBkb2VzIG5vdCByZXRhaW4gVmVydGV4SUQgb2Ygb3JpZ2luYWwgZ3JhcGggLSBjb3VsZCBiZSB1c2VkIGxhdGVyIGlzIG5vdCBuZWVkZWRcblxuIyBGaW5kIHRoZSBjb21wb25lbnQgSUQgb2YgdGhlIGxhcmdlc3QgY29ubmVjdGVkIGNvbXBvbmVudFxubGFyZ2VzdF9jb21wb25lbnRfaWQgPC0gd2hpY2gubWF4KGNvbXBvbmVudHMkY3NpemUpXG5cbiMgQ3JlYXRlIGEgc3ViZ3JhcGggb2YgdGhlIGxhcmdlc3QgY29ubmVjdGVkIGNvbXBvbmVudFxuZ19sIDwtIGluZHVjZWRfc3ViZ3JhcGgoZywgdmlkcyA9IHdoaWNoKGNvbXBvbmVudHMkbWVtYmVyc2hpcCA9PSBsYXJnZXN0X2NvbXBvbmVudF9pZCkpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0NvdWxkIHVzZSBsYXJnZXN0X2NvbXBvbmVudCgpIGJ1dCBkb2VzIG5vdCByZXRhaW4gVmVydGV4SUQgb2Ygb3JpZ2luYWwgZ3JhcGggLSBjb3VsZCBiZSB1c2VkIGxhdGVyIGlzIG5vdCBuZWVkZWRcblxuIyBGaW5kIHRoZSBjb21wb25lbnQgSUQgb2YgdGhlIGxhcmdlc3QgY29ubmVjdGVkIGNvbXBvbmVudFxubGFyZ2VzdF9jb21wb25lbnRfaWQgPC0gd2hpY2gubWF4KGNvbXBvbmVudHMkY3NpemUpXG5cbiMgQ3JlYXRlIGEgc3ViZ3JhcGggb2YgdGhlIGxhcmdlc3QgY29ubmVjdGVkIGNvbXBvbmVudFxuZ19sIDwtIGluZHVjZWRfc3ViZ3JhcGgoZywgdmlkcyA9IHdoaWNoKGNvbXBvbmVudHMkbWVtYmVyc2hpcCA9PSBsYXJnZXN0X2NvbXBvbmVudF9pZCkpXG5gYGAifQ== -->
-<pre class="r"><code>#Could use largest_component() but does not retain VertexID of original graph - could be used later is not needed
-
-# Find the component ID of the largest connected component
-largest_component_id &lt;- which.max(components$csize)
-
-# Create a subgraph of the largest connected component
-g_l &lt;- induced_subgraph(g, vids = which(components$membership == largest_component_id))</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjM1Z0YldGeWVTaG1hWFJmZDJWcFoyaDBNVGtwWEc1Z1lHQWlmUT09IC0tPlxuXG5gYGByXG5zdW1tYXJ5KGZpdF93ZWlnaHQxOSlcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShmaXRfd2VpZ2h0MTkpXG5gYGAifQ== -->
+<pre class="r"><code>summary(fit_weight19)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ2FsbDpcbmVyZ20oZm9ybXVsYSA9IG5ldF90b3B4IH4gZWRnZXMgKyBtdXR1YWwoZm9ybSA9IFwibmFic2RpZmZcIiksIFxuICAgIHJlc3BvbnNlID0gXCJ3ZWlnaHRcIiwgcmVmZXJlbmNlID0gfkdlb21ldHJpYywgY29udHJvbCA9IGNvbnRyb2wuZXJnbShNQ01DLnNhbXBsZXNpemUgPSAyMDAwLCBcbiAgICAgICAgc2VlZCA9IDEyMykpXG5cbk1vbnRlIENhcmxvIE1heGltdW0gTGlrZWxpaG9vZCBSZXN1bHRzOlxuXG4gICAgICAgICAgICAgICAgICBFc3RpbWF0ZSBTdGQuIEVycm9yIE1DTUMgJSB6IHZhbHVlIFByKD58enwpICAgIFxubm9uemVybyAgICAgICAgIC05LjUwN2UrMDMgICAgICAgICBOQSAgICAgTkEgICAgICBOQSAgICAgICBOQSAgICBcbm11dHVhbC5uYWJzZGlmZiAgMS40NTVlLTA5ICAxLjUwNGUtMTAgICAgICAwICAgOS42NzYgICA8MWUtMDQgKioqXG4tLS1cblNpZ25pZi4gY29kZXM6ICAwIOKAmCoqKuKAmSAwLjAwMSDigJgqKuKAmSAwLjAxIOKAmCrigJkgMC4wNSDigJgu4oCZIDAuMSDigJgg4oCZIDFcblxuICAgICBOdWxsIERldmlhbmNlOiAgICAwLjAgIG9uIDM4MCAgZGVncmVlcyBvZiBmcmVlZG9tXG4gUmVzaWR1YWwgRGV2aWFuY2U6IC02NzEuNCAgb24gMzc4ICBkZWdyZWVzIG9mIGZyZWVkb21cbiBcbk5vdGUgdGhhdCB0aGUgbnVsbCBtb2RlbCBsaWtlbGlob29kIGFuZCBkZXZpYW5jZSBhcmUgZGVmaW5lZCB0byBiZSAwLiBUaGlzIG1lYW5zXG50aGF0IGFsbCBsaWtlbGlob29kLWJhc2VkIGluZmVyZW5jZSAoTFJULCBBbmFseXNpcyBvZiBEZXZpYW5jZSwgQUlDLCBCSUMsIGV0Yy4pIGlzXG5vbmx5IHZhbGlkIGJldHdlZW4gbW9kZWxzIHdpdGggdGhlIHNhbWUgcmVmZXJlbmNlIGRpc3RyaWJ1dGlvbiBhbmQgY29uc3RyYWludHMuXG5cbkFJQzogLTY2Ny40ICBCSUM6IC02NTkuNSAgKFNtYWxsZXIgaXMgYmV0dGVyLiBNQyBTdGQuIEVyci4gPSAxMC43OClcbiJ9 -->
+<pre><code>Call:
+ergm(formula = net_topx ~ edges + mutual(form = &quot;nabsdiff&quot;), 
+    response = &quot;weight&quot;, reference = ~Geometric, control = control.ergm(MCMC.samplesize = 2000, 
+        seed = 123))
+
+Monte Carlo Maximum Likelihood Results:
+
+                  Estimate Std. Error MCMC % z value Pr(&gt;|z|)    
+nonzero         -9.507e+03         NA     NA      NA       NA    
+mutual.nabsdiff  1.455e-09  1.504e-10      0   9.676   &lt;1e-04 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+     Null Deviance:    0.0  on 380  degrees of freedom
+ Residual Deviance: -671.4  on 378  degrees of freedom
+ 
+Note that the null model likelihood and deviance are defined to be 0. This means
+that all likelihood-based inference (LRT, Analysis of Deviance, AIC, BIC, etc.) is
+only valid between models with the same reference distribution and constraints.
+
+AIC: -667.4  BIC: -659.5  (Smaller is better. MC Std. Err. = 10.78)</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJVYUdseklHbHpJR0VnWm1sNElHWnZjaUJ6ZVcxaWIyeHBZMkZzYkhrZ2QyVnBaMmgwWldRZ1pXUm5aWE1zSUdadmNpQmpiM0p5WldOMGJIa2dZMkZzWTNWc1lYUnBibWNnWTJWdWRISmhiR2wwZVNCdFpXRnpkWEpsY3lCc1lYUmxjbHh1SXlCVWFHVjVJR0Z5WlNCcWRYTjBJSFJvWlNCeVpXMWhhVzV6SUc5bUlGTnZiR1VnYkdWdVpHVnlJREV3TUNVZ2MyTmhiR1VnWm1GamRHOXlJR05oYkdOMWJHRjBhVzl1WEc1RktHZGZiQ2trZDJWcFoyaDBXMFVvWjE5c0tTUjNaV2xuYUhRZ1BUMGdNRjBnUEMwZ01DNHhYRzVnWUdBaWZRPT0gLS0+XG5cbmBgYHJcbiMgVGhpcyBpcyBhIGZpeCBmb3Igc3ltYm9saWNhbGx5IHdlaWdodGVkIGVkZ2VzLCBmb3IgY29ycmVjdGx5IGNhbGN1bGF0aW5nIGNlbnRyYWxpdHkgbWVhc3VyZXMgbGF0ZXJcbiMgVGhleSBhcmUganVzdCB0aGUgcmVtYWlucyBvZiBTb2xlIGxlbmRlciAxMDAlIHNjYWxlIGZhY3RvciBjYWxjdWxhdGlvblxuRShnX2wpJHdlaWdodFtFKGdfbCkkd2VpZ2h0ID09IDBdIDwtIDAuMVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBUaGlzIGlzIGEgZml4IGZvciBzeW1ib2xpY2FsbHkgd2VpZ2h0ZWQgZWRnZXMsIGZvciBjb3JyZWN0bHkgY2FsY3VsYXRpbmcgY2VudHJhbGl0eSBtZWFzdXJlcyBsYXRlclxuIyBUaGV5IGFyZSBqdXN0IHRoZSByZW1haW5zIG9mIFNvbGUgbGVuZGVyIDEwMCUgc2NhbGUgZmFjdG9yIGNhbGN1bGF0aW9uXG5FKGdfbCkkd2VpZ2h0W0UoZ19sKSR3ZWlnaHQgPT0gMF0gPC0gMC4xXG5gYGAifQ== -->
-<pre class="r"><code># This is a fix for symbolically weighted edges, for correctly calculating centrality measures later
-# They are just the remains of Sole lender 100% scale factor calculation
-E(g_l)$weight[E(g_l)$weight == 0] &lt;- 0.1</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVabWwwWDNkbGFXZG9kREl4SUR3dElHVnlaMjBvYm1WMFgzTnBZaUIrSUdWa1oyVnpJQ3NnYlhWMGRXRnNLR1p2Y20wZ1BTQmNJbTVoWW5Oa2FXWm1YQ0lwTEZ4dUlDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbVZ6Y0c5dWMyVWdQU0JjSW5kbGFXZG9kRndpTENCY2JpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSEpsWm1WeVpXNWpaU0E5SUg1SFpXOXRaWFJ5YVdNc1hHNGdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0JqYjI1MGNtOXNJRDBnWTI5dWRISnZiQzVsY21kdEtFMURUVU11YzJGdGNHeGxjMmw2WlNBOUlESXdNREFzWEc0Z0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUhObFpXUWdQU0F4TWpNcEtWeHVZR0JnSW4wPSAtLT5cblxuYGBgclxuZml0X3dlaWdodDIxIDwtIGVyZ20obmV0X3NpYiB+IGVkZ2VzICsgbXV0dWFsKGZvcm0gPSBcIm5hYnNkaWZmXCIpLFxuICAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsXG4gICAgICAgICAgICAgICAgICAgICBjb250cm9sID0gY29udHJvbC5lcmdtKE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNlZWQgPSAxMjMpKVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0X3dlaWdodDIxIDwtIGVyZ20obmV0X3NpYiB+IGVkZ2VzICsgbXV0dWFsKGZvcm0gPSBcIm5hYnNkaWZmXCIpLFxuICAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsXG4gICAgICAgICAgICAgICAgICAgICBjb250cm9sID0gY29udHJvbC5lcmdtKE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNlZWQgPSAxMjMpKVxuYGBgIn0= -->
+<pre class="r"><code>fit_weight21 &lt;- ergm(net_sib ~ edges + mutual(form = &quot;nabsdiff&quot;),
+                     response = &quot;weight&quot;, 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                            seed = 123))</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXHUwMDFiRzM7QmVzdCB2YWxpZCBwcm9wb3NhbCDigJhEaXNjVE5U4oCZIGNhbm5vdCB0YWtlIGludG8gYWNjb3VudCBoaW50KHMpIOKAmHRyaWFkaWPigJkuXG5cdTAwMWJnXHUwMDFiRzM7U3RhcnRpbmcgY29udHJhc3RpdmUgZGl2ZXJnZW5jZSBlc3RpbWF0aW9uIHZpYSBDRC1NQ01MRTpcblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gMSBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgUC12YWx1ZToxLjJlLTE3N1xuXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczO1RoZSBsb2ctbGlrZWxpaG9vZCBpbXByb3ZlZCBieSA4NTg3LlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiAyIG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBQLXZhbHVlOjEuM2UtMDNcblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4wNzE0MS5cblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gMyBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgUC12YWx1ZTo1LjZlLTA0XG5cdTAwMWJnXHUwMDFiRzM7MSBcdTAwMWJnXHUwMDFiRzM7VGhlIGxvZy1saWtlbGlob29kIGltcHJvdmVkIGJ5IDAuMDUyMy5cblx1MDAxYmdcdTAwMWJHMztJdGVyYXRpb24gNCBvZiBhdCBtb3N0IDYwOlxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIHRlc3QgUC12YWx1ZTozLjRlLTA0XG5cdTAwMWJnXHUwMDFiRzM7MSBcdTAwMWJnXHUwMDFiRzM7VGhlIGxvZy1saWtlbGlob29kIGltcHJvdmVkIGJ5IDAuMDQwNzQuXG5cdTAwMWJnXHUwMDFiRzM7SXRlcmF0aW9uIDUgb2YgYXQgbW9zdCA2MDpcblx1MDAxYmdcdTAwMWJHMztDb252ZXJnZW5jZSB0ZXN0IFAtdmFsdWU6OC4yZS0wMVxuXHUwMDFiZ1x1MDAxYkczO0NvbnZlcmdlbmNlIGRldGVjdGVkLiBTdG9wcGluZy5cblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4wMDAxMDc0LlxuXHUwMDFiZ1x1MDAxYkczO0ZpbmlzaGVkIENELlxuXHUwMDFiZ1x1MDAxYkcyO1x1MDAxYkgyO1dhcm5pbmdcdTAwMWJoOiBNb2RlbCBzdGF0aXN0aWNzIOKAmG5vbnplcm/igJkgYXJlIG5vdCB2YXJ5aW5nLiBUaGlzIG1heSBpbmRpY2F0ZSB0aGF0IHRoZSBvYnNlcnZlZCBkYXRhIG9jY3VwaWVzIGFuIGV4dHJlbWUgcG9pbnQgaW4gdGhlIHNhbXBsZSBzcGFjZSBvciB0aGF0IHRoZSBlc3RpbWF0aW9uIGhhcyByZWFjaGVkIGEgZGVhZC1lbmQgY29uZmlndXJhdGlvbi5cdTAwMWJnXG5cdTAwMWJHMztTdGFydGluZyBNb250ZSBDYXJsbyBtYXhpbXVtIGxpa2VsaWhvb2QgZXN0aW1hdGlvbiAoTUNNTEUpOlxuXHUwMDFiZ1x1MDAxYkczO0l0ZXJhdGlvbiAxIG9mIGF0IG1vc3QgNjA6XG5cdTAwMWJnXHUwMDFiRzM7TW9kZWwgc3RhdGlzdGljcyDigJhub256ZXJv4oCZIGFyZSBub3QgdmFyeWluZy4gVGhpcyBtYXkgaW5kaWNhdGUgdGhhdCB0aGUgb2JzZXJ2ZWQgZGF0YSBvY2N1cGllcyBhbiBleHRyZW1lIHBvaW50IGluIHRoZSBzYW1wbGUgc3BhY2Ugb3IgdGhhdCB0aGUgZXN0aW1hdGlvbiBoYXMgcmVhY2hlZCBhIGRlYWQtZW5kIGNvbmZpZ3VyYXRpb24uXG5cdTAwMWJnXHUwMDFiRzM7MSBcdTAwMWJnXHUwMDFiRzM7T3B0aW1pemluZyB3aXRoIHN0ZXAgbGVuZ3RoIDEuMDAwMC5cblx1MDAxYmdcdTAwMWJHMztUaGUgbG9nLWxpa2VsaWhvb2QgaW1wcm92ZWQgYnkgMC4xMzg0LlxuXHUwMDFiZ1x1MDAxYkczO0VzdGltYXRpbmcgZXF1YXRpb25zIGFyZSBub3Qgd2l0aGluIHRvbGVyYW5jZSByZWdpb24uXG5cdTAwMWJnXHUwMDFiRzM7SXRlcmF0aW9uIDIgb2YgYXQgbW9zdCA2MDpcblx1MDAxYmdcdTAwMWJHMztNb2RlbCBzdGF0aXN0aWNzIOKAmG5vbnplcm/igJkgYXJlIG5vdCB2YXJ5aW5nLiBUaGlzIG1heSBpbmRpY2F0ZSB0aGF0IHRoZSBvYnNlcnZlZCBkYXRhIG9jY3VwaWVzIGFuIGV4dHJlbWUgcG9pbnQgaW4gdGhlIHNhbXBsZSBzcGFjZSBvciB0aGF0IHRoZSBlc3RpbWF0aW9uIGhhcyByZWFjaGVkIGEgZGVhZC1lbmQgY29uZmlndXJhdGlvbi5cblx1MDAxYmdcdTAwMWJHMzsxIFx1MDAxYmdcdTAwMWJHMztPcHRpbWl6aW5nIHdpdGggc3RlcCBsZW5ndGggMS4wMDAwLlxuXHUwMDFiZ1x1MDAxYkczO1RoZSBsb2ctbGlrZWxpaG9vZCBpbXByb3ZlZCBieSAwLjAxMTIuXG5cdTAwMWJnXHUwMDFiRzM7Q29udmVyZ2VuY2UgdGVzdCBwLXZhbHVlOiAwLjAwNDYuIFx1MDAxYmdcdTAwMWJHMztDb252ZXJnZWQgd2l0aCA5OSUgY29uZmlkZW5jZS5cblx1MDAxYmdcdTAwMWJHMztGaW5pc2hlZCBNQ01MRS5cblx1MDAxYmdcdTAwMWJHMztFdmFsdWF0aW5nIGxvZy1saWtlbGlob29kIGF0IHRoZSBlc3RpbWF0ZS4gXHUwMDFiZ1x1MDAxYkczO1NldHRpbmcgdXAgYnJpZGdlIHNhbXBsaW5nLi4uXG5cdTAwMWJnXHUwMDFiRzM7QmVzdCB2YWxpZCBwcm9wb3NhbCDigJhEaXNjVE5U4oCZIGNhbm5vdCB0YWtlIGludG8gYWNjb3VudCBoaW50KHMpIOKAmHRyaWFkaWPigJkuXG5cdTAwMWJnXHUwMDFiRzM7VXNpbmcgMTYgYnJpZGdlczogXHUwMDFiZ1x1MDAxYkczOzEgXHUwMDFiZ1x1MDAxYkczOzIgXHUwMDFiZ1x1MDAxYkczOzMgXHUwMDFiZ1x1MDAxYkczOzQgXHUwMDFiZ1x1MDAxYkczOzUgXHUwMDFiZ1x1MDAxYkczOzYgXHUwMDFiZ1x1MDAxYkczOzcgXHUwMDFiZ1x1MDAxYkczOzggXHUwMDFiZ1x1MDAxYkczOzkgXHUwMDFiZ1x1MDAxYkczOzEwIFx1MDAxYmdcdTAwMWJHMzsxMSBcdTAwMWJnXHUwMDFiRzM7MTIgXHUwMDFiZ1x1MDAxYkczOzEzIFx1MDAxYmdcdTAwMWJHMzsxNCBcdTAwMWJnXHUwMDFiRzM7MTUgXHUwMDFiZ1x1MDAxYkczOzE2IFx1MDAxYmdcdTAwMWJHMzsuXG5cdTAwMWJnXHUwMDFiRzM7Tm90ZTogTnVsbCBtb2RlbCBsaWtlbGlob29kIGNhbGN1bGF0aW9uIGlzIG5vdCBpbXBsZW1lbnRlZCBmb3IgdmFsdWVkIEVSR01zIGF0IHRoaXNcbnRpbWUuICBUaGlzIG1lYW5zIHRoYXQgYWxsIGxpa2VsaWhvb2QtYmFzZWQgaW5mZXJlbmNlIChMUlQsIEFuYWx5c2lzIG9mIERldmlhbmNlLFxuQUlDLCBCSUMsIGV0Yy4pIGlzIG9ubHkgdmFsaWQgYmV0d2VlbiBtb2RlbHMgd2l0aCB0aGUgc2FtZSByZWZlcmVuY2UgZGlzdHJpYnV0aW9uXG5hbmQgY29uc3RyYWludHMuXG5cdTAwMWJnXHUwMDFiRzM7XG5cdTAwMWJnXHUwMDFiRzM7VGhpcyBtb2RlbCB3YXMgZml0IHVzaW5nIE1DTUMuICBUbyBleGFtaW5lIG1vZGVsIGRpYWdub3N0aWNzIGFuZCBjaGVjayBmb3JcbmRlZ2VuZXJhY3ksIHVzZSB0aGUgbWNtYy5kaWFnbm9zdGljcygpIGZ1bmN0aW9uLlxuXHUwMDFiZ1xuIn0= -->
+<pre><code>G3;Best valid proposal ‘DiscTNT’ cannot take into account hint(s) ‘triadic’.
+gG3;Starting contrastive divergence estimation via CD-MCMLE:
+gG3;Iteration 1 of at most 60:
+gG3;Convergence test P-value:1.2e-177
+gG3;1 gG3;The log-likelihood improved by 8587.
+gG3;Iteration 2 of at most 60:
+gG3;Convergence test P-value:1.3e-03
+gG3;1 gG3;The log-likelihood improved by 0.07141.
+gG3;Iteration 3 of at most 60:
+gG3;Convergence test P-value:5.6e-04
+gG3;1 gG3;The log-likelihood improved by 0.0523.
+gG3;Iteration 4 of at most 60:
+gG3;Convergence test P-value:3.4e-04
+gG3;1 gG3;The log-likelihood improved by 0.04074.
+gG3;Iteration 5 of at most 60:
+gG3;Convergence test P-value:8.2e-01
+gG3;Convergence detected. Stopping.
+gG3;1 gG3;The log-likelihood improved by 0.0001074.
+gG3;Finished CD.
+gG2;H2;Warningh: Model statistics ‘nonzero’ are not varying. This may indicate that the observed data occupies an extreme point in the sample space or that the estimation has reached a dead-end configuration.g
+G3;Starting Monte Carlo maximum likelihood estimation (MCMLE):
+gG3;Iteration 1 of at most 60:
+gG3;Model statistics ‘nonzero’ are not varying. This may indicate that the observed data occupies an extreme point in the sample space or that the estimation has reached a dead-end configuration.
+gG3;1 gG3;Optimizing with step length 1.0000.
+gG3;The log-likelihood improved by 0.1384.
+gG3;Estimating equations are not within tolerance region.
+gG3;Iteration 2 of at most 60:
+gG3;Model statistics ‘nonzero’ are not varying. This may indicate that the observed data occupies an extreme point in the sample space or that the estimation has reached a dead-end configuration.
+gG3;1 gG3;Optimizing with step length 1.0000.
+gG3;The log-likelihood improved by 0.0112.
+gG3;Convergence test p-value: 0.0046. gG3;Converged with 99% confidence.
+gG3;Finished MCMLE.
+gG3;Evaluating log-likelihood at the estimate. gG3;Setting up bridge sampling...
+gG3;Best valid proposal ‘DiscTNT’ cannot take into account hint(s) ‘triadic’.
+gG3;Using 16 bridges: gG3;1 gG3;2 gG3;3 gG3;4 gG3;5 gG3;6 gG3;7 gG3;8 gG3;9 gG3;10 gG3;11 gG3;12 gG3;13 gG3;14 gG3;15 gG3;16 gG3;.
+gG3;Note: Null model likelihood calculation is not implemented for valued ERGMs at this
+time.  This means that all likelihood-based inference (LRT, Analysis of Deviance,
+AIC, BIC, etc.) is only valid between models with the same reference distribution
+and constraints.
+gG3;
+gG3;This model was fit using MCMC.  To examine model diagnostics and check for
+degeneracy, use the mcmc.diagnostics() function.
+g</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjM1Z0YldGeWVTaG1hWFJmZDJWcFoyaDBNakVwWEc1Z1lHQWlmUT09IC0tPlxuXG5gYGByXG5zdW1tYXJ5KGZpdF93ZWlnaHQyMSlcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShmaXRfd2VpZ2h0MjEpXG5gYGAifQ== -->
+<pre class="r"><code>summary(fit_weight21)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiQ2FsbDpcbmVyZ20oZm9ybXVsYSA9IG5ldF9zaWIgfiBlZGdlcyArIG11dHVhbChmb3JtID0gXCJuYWJzZGlmZlwiKSwgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICByZWZlcmVuY2UgPSB+R2VvbWV0cmljLCBjb250cm9sID0gY29udHJvbC5lcmdtKE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAsIFxuICAgICAgICBzZWVkID0gMTIzKSlcblxuTW9udGUgQ2FybG8gTWF4aW11bSBMaWtlbGlob29kIFJlc3VsdHM6XG5cbiAgICAgICAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgTUNNQyAlIHogdmFsdWUgUHIoPnx6fCkgICAgXG5ub256ZXJvICAgICAgICAgLTQuNDU1ZSswMyAgICAgICAgIE5BICAgICBOQSAgICAgIE5BICAgICAgIE5BICAgIFxubXV0dWFsLm5hYnNkaWZmICA3Ljg2MGUtMDkgIDkuMjkxZS0xMCAgICAgIDEgICA4LjQ1OSAgIDwxZS0wNCAqKipcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG4gICAgIE51bGwgRGV2aWFuY2U6ICAgIDAuMCAgb24gODEyICBkZWdyZWVzIG9mIGZyZWVkb21cbiBSZXNpZHVhbCBEZXZpYW5jZTogLTMzNS40ICBvbiA4MTAgIGRlZ3JlZXMgb2YgZnJlZWRvbVxuIFxuTm90ZSB0aGF0IHRoZSBudWxsIG1vZGVsIGxpa2VsaWhvb2QgYW5kIGRldmlhbmNlIGFyZSBkZWZpbmVkIHRvIGJlIDAuIFRoaXMgbWVhbnNcbnRoYXQgYWxsIGxpa2VsaWhvb2QtYmFzZWQgaW5mZXJlbmNlIChMUlQsIEFuYWx5c2lzIG9mIERldmlhbmNlLCBBSUMsIEJJQywgZXRjLikgaXNcbm9ubHkgdmFsaWQgYmV0d2VlbiBtb2RlbHMgd2l0aCB0aGUgc2FtZSByZWZlcmVuY2UgZGlzdHJpYnV0aW9uIGFuZCBjb25zdHJhaW50cy5cblxuQUlDOiAtMzMxLjQgIEJJQzogLTMyMiAgKFNtYWxsZXIgaXMgYmV0dGVyLiBNQyBTdGQuIEVyci4gPSAyNi4yOSlcbiJ9 -->
+<pre><code>Call:
+ergm(formula = net_sib ~ edges + mutual(form = &quot;nabsdiff&quot;), response = &quot;weight&quot;, 
+    reference = ~Geometric, control = control.ergm(MCMC.samplesize = 2000, 
+        seed = 123))
+
+Monte Carlo Maximum Likelihood Results:
+
+                  Estimate Std. Error MCMC % z value Pr(&gt;|z|)    
+nonzero         -4.455e+03         NA     NA      NA       NA    
+mutual.nabsdiff  7.860e-09  9.291e-10      1   8.459   &lt;1e-04 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+     Null Deviance:    0.0  on 812  degrees of freedom
+ Residual Deviance: -335.4  on 810  degrees of freedom
+ 
+Note that the null model likelihood and deviance are defined to be 0. This means
+that all likelihood-based inference (LRT, Analysis of Deviance, AIC, BIC, etc.) is
+only valid between models with the same reference distribution and constraints.
+
+AIC: -331.4  BIC: -322  (Smaller is better. MC Std. Err. = 26.29)</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Simplify largest connected component g_l into g_l_s, summing the
-edges between two nodes Removing attributes not used for current
-analysis goals</p>
-<!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJuWDJ4ZmN5QmlaV2x1WnlCMGFHVWdjMmx0Y0d4cFptbGxaQ0JuY21Gd2FDd2djM1Z0YldsdVp5QmhiR3dnZDJWcFoyaDBjeUJpWlhSM1pXVnVJSFJvWlNCellXMWxJSFIzYnlCdWIyUmxjeTRnWEc1blgyeGZjeUE4TFNCcFozSmhjR2c2T25OcGJYQnNhV1o1S0Z4dUlDQm5YMndzSUZ4dUlDQmxaR2RsTG1GMGRISXVZMjl0WWlBOUlHeHBjM1FvZDJWcFoyaDBJRDBnWENKemRXMWNJaWtzWEc0Z0lISmxiVzkyWlM1c2IyOXdjeUE5SUZSU1ZVVmNiaWxjYm1kZmJGOXpJRHd0SUdSbGJHVjBaVjlsWkdkbFgyRjBkSElvWjE5c1gzTXNJRndpVW05c1pYTmNJaWxjYm1kZmJGOXpJRHd0SUdSbGJHVjBaVjlsWkdkbFgyRjBkSElvWjE5c1gzTXNJRndpUVhOemFXZHVaV1JNYjJGdVUyaGhjbVZjSWlsY2JrVW9aMTlzWDNNcEpIZGxhV2RvZEZ0RktHZGZiRjl6S1NSM1pXbG5hSFFnUFQwZ01DNHhYU0E4TFNBeFhHNUZLR2RmYkY5ektTUjNaV2xuYUhRZ1BDMGdjbTkxYm1Rb1JTaG5YMnhmY3lra2QyVnBaMmgwS1Z4dVhHNGpJRU52Ym1acGNtMGdUWFZzYVhSbFpHZGxjeUJvWVhabElHSmxaVzRnYzNWdGJXVmtPbHh1Y0hKcGJuUW9YQ0pOZFd4MGFXVmtaMlZ6SUdWNGFYTjBPbHdpS1Z4dVlHQmdJbjA9IC0tPlxuXG5gYGByXG4jIGdfbF9zIGJlaW5nIHRoZSBzaW1wbGlmaWVkIGdyYXBoLCBzdW1taW5nIGFsbCB3ZWlnaHRzIGJldHdlZW4gdGhlIHNhbWUgdHdvIG5vZGVzLiBcbmdfbF9zIDwtIGlncmFwaDo6c2ltcGxpZnkoXG4gIGdfbCwgXG4gIGVkZ2UuYXR0ci5jb21iID0gbGlzdCh3ZWlnaHQgPSBcInN1bVwiKSxcbiAgcmVtb3ZlLmxvb3BzID0gVFJVRVxuKVxuZ19sX3MgPC0gZGVsZXRlX2VkZ2VfYXR0cihnX2xfcywgXCJSb2xlc1wiKVxuZ19sX3MgPC0gZGVsZXRlX2VkZ2VfYXR0cihnX2xfcywgXCJBc3NpZ25lZExvYW5TaGFyZVwiKVxuRShnX2xfcykkd2VpZ2h0W0UoZ19sX3MpJHdlaWdodCA9PSAwLjFdIDwtIDFcbkUoZ19sX3MpJHdlaWdodCA8LSByb3VuZChFKGdfbF9zKSR3ZWlnaHQpXG5cbiMgQ29uZmlybSBNdWxpdGVkZ2VzIGhhdmUgYmVlbiBzdW1tZWQ6XG5wcmludChcIk11bHRpZWRnZXMgZXhpc3Q6XCIpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBnX2xfcyBiZWluZyB0aGUgc2ltcGxpZmllZCBncmFwaCwgc3VtbWluZyBhbGwgd2VpZ2h0cyBiZXR3ZWVuIHRoZSBzYW1lIHR3byBub2Rlcy4gXG5nX2xfcyA8LSBpZ3JhcGg6OnNpbXBsaWZ5KFxuICBnX2wsIFxuICBlZGdlLmF0dHIuY29tYiA9IGxpc3Qod2VpZ2h0ID0gXCJzdW1cIiksXG4gIHJlbW92ZS5sb29wcyA9IFRSVUVcbilcbmdfbF9zIDwtIGRlbGV0ZV9lZGdlX2F0dHIoZ19sX3MsIFwiUm9sZXNcIilcbmdfbF9zIDwtIGRlbGV0ZV9lZGdlX2F0dHIoZ19sX3MsIFwiQXNzaWduZWRMb2FuU2hhcmVcIilcbkUoZ19sX3MpJHdlaWdodFtFKGdfbF9zKSR3ZWlnaHQgPT0gMC4xXSA8LSAxXG5FKGdfbF9zKSR3ZWlnaHQgPC0gcm91bmQoRShnX2xfcykkd2VpZ2h0KVxuXG4jIENvbmZpcm0gTXVsaXRlZGdlcyBoYXZlIGJlZW4gc3VtbWVkOlxucHJpbnQoXCJNdWx0aWVkZ2VzIGV4aXN0OlwiKVxuYGBgIn0= -->
-<pre class="r"><code># g_l_s being the simplified graph, summing all weights between the same two nodes. 
-g_l_s &lt;- igraph::simplify(
-  g_l, 
-  edge.attr.comb = list(weight = &quot;sum&quot;),
-  remove.loops = TRUE
-)
-g_l_s &lt;- delete_edge_attr(g_l_s, &quot;Roles&quot;)
-g_l_s &lt;- delete_edge_attr(g_l_s, &quot;AssignedLoanShare&quot;)
-E(g_l_s)$weight[E(g_l_s)$weight == 0.1] &lt;- 1
-E(g_l_s)$weight &lt;- round(E(g_l_s)$weight)
-
-# Confirm Mulitedges have been summed:
-print(&quot;Multiedges exist:&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTXVsdGllZGdlcyBleGlzdDpcIlxuIn0= -->
-<pre><code>[1] &quot;Multiedges exist:&quot;</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVZVzU1WDIxMWJIUnBjR3hsS0dkZmJGOXpLVnh1WUdCZ0luMD0gLS0+XG5cbmBgYHJcbmFueV9tdWx0aXBsZShnX2xfcylcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW55X211bHRpcGxlKGdfbF9zKVxuYGBgIn0= -->
-<pre class="r"><code>any_multiple(g_l_s)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIEZBTFNFXG4ifQ== -->
-<pre><code>[1] FALSE</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<div id="subgraph-top-10s" class="section level1">
-<h1>Subgraph Top 10s</h1>
-<p>Compute (Sample) Top 10 largest borrowers and sellers by USD Amount
-and create Subgraph</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJEYjIxd2RYUmxJSFJ2ZEdGc0lHOTFkQ0JoYm1RZ2FXNGdkMlZwWjJoMGMxeHViM1YwWDNOMGNtVnVaM1JvSUR3dElITjBjbVZ1WjNSb0tHZGZiRjl6TENCdGIyUmxJRDBnWENKdmRYUmNJaXdnZDJWcFoyaDBjeUE5SUVVb1oxOXNYM01wSkhkbGFXZG9kQ2xjYm1sdVgzTjBjbVZ1WjNSb0lEd3RJSE4wY21WdVozUm9LR2RmYkY5ekxDQnRiMlJsSUQwZ1hDSnBibHdpTENCM1pXbG5hSFJ6SUQwZ1JTaG5YMnhmY3lra2QyVnBaMmgwS1Z4dVhHNGpJRk5sYkdWamRDQjBiM0FnYkdWdVpHVnljeUJoYm1RZ1ltOXljbTkzWlhKelhHNTBiM0JmYkdWdVpHVnljeUE4TFNCdVlXMWxjeWh6YjNKMEtHOTFkRjl6ZEhKbGJtZDBhQ3dnWkdWamNtVmhjMmx1WnlBOUlGUlNWVVVwS1ZzeE9qRXdYVnh1ZEc5d1gySnZjbkp2ZDJWeWN5QThMU0J1WVcxbGN5aHpiM0owS0dsdVgzTjBjbVZ1WjNSb0xDQmtaV055WldGemFXNW5JRDBnVkZKVlJTa3BXekU2TVRCZFhHNWNiaU1nUTI5dFltbHVaU0IxYm1seGRXVWdibTlrWlhOY2JtbHRjRzl5ZEdGdWRGOXViMlJsY3lBOExTQjFibWx4ZFdVb1l5aDBiM0JmYkdWdVpHVnljeXdnZEc5d1gySnZjbkp2ZDJWeWN5a3BYRzVjYmlNZ1JtbHVaQ0IwYUdWcGNpQnVaV2xuYUdKdmNuTmNibTVsYVdkb1ltOXljeUE4TFNCMWJtbHhkV1VvZFc1c2FYTjBLR2xuY21Gd2FEbzZibVZwWjJoaWIzSm9iMjlrS0dkZmJGOXpMQ0J2Y21SbGNpQTlJREVzSUc1dlpHVnpJRDBnYVcxd2IzSjBZVzUwWDI1dlpHVnpMQ0J0YjJSbElEMGdYQ0poYkd4Y0lpa3BLVnh1WEc0aklFTnlaV0YwWlNCMGFHVWdjM1ZpWjNKaGNHaGNiaU56ZFdKZlp5QThMU0JwYm1SMVkyVmtYM04xWW1keVlYQm9LR2RmYkN3Z2RtbGtjeUE5SUc1bGFXZG9ZbTl5Y3lrZ0l5QlVhR2x6SUcxaGEyVnpJR2x0Y0c5eWRHRnVkQ0J1YjJSbGN5QXJJSFJvWldseUlHNWxhV2RvWW05eWN5QnBiaUIwYUdVZ2JtVjBkMjl5YTF4dVoxOTBiM0I0SUR3dElHbHVaSFZqWldSZmMzVmlaM0poY0dnb1oxOXNYM01zSUhacFpITWdQU0JwYlhCdmNuUmhiblJmYm05a1pYTXBJQ01nVkdocGN5QnRZV3RsY3lCcGRDQnZibXg1SUhSb1pTQnBiWEJ2Y25SaGJuUWdibTlrWlhNZ1lYSmxJR2x1SUhSb1pTQnVaWFIzYjNKclhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxuIyBDb21wdXRlIHRvdGFsIG91dCBhbmQgaW4gd2VpZ2h0c1xub3V0X3N0cmVuZ3RoIDwtIHN0cmVuZ3RoKGdfbF9zLCBtb2RlID0gXCJvdXRcIiwgd2VpZ2h0cyA9IEUoZ19sX3MpJHdlaWdodClcbmluX3N0cmVuZ3RoIDwtIHN0cmVuZ3RoKGdfbF9zLCBtb2RlID0gXCJpblwiLCB3ZWlnaHRzID0gRShnX2xfcykkd2VpZ2h0KVxuXG4jIFNlbGVjdCB0b3AgbGVuZGVycyBhbmQgYm9ycm93ZXJzXG50b3BfbGVuZGVycyA8LSBuYW1lcyhzb3J0KG91dF9zdHJlbmd0aCwgZGVjcmVhc2luZyA9IFRSVUUpKVsxOjEwXVxudG9wX2JvcnJvd2VycyA8LSBuYW1lcyhzb3J0KGluX3N0cmVuZ3RoLCBkZWNyZWFzaW5nID0gVFJVRSkpWzE6MTBdXG5cbiMgQ29tYmluZSB1bmlxdWUgbm9kZXNcbmltcG9ydGFudF9ub2RlcyA8LSB1bmlxdWUoYyh0b3BfbGVuZGVycywgdG9wX2JvcnJvd2VycykpXG5cbiMgRmluZCB0aGVpciBuZWlnaGJvcnNcbm5laWdoYm9ycyA8LSB1bmlxdWUodW5saXN0KGlncmFwaDo6bmVpZ2hib3Job29kKGdfbF9zLCBvcmRlciA9IDEsIG5vZGVzID0gaW1wb3J0YW50X25vZGVzLCBtb2RlID0gXCJhbGxcIikpKVxuXG4jIENyZWF0ZSB0aGUgc3ViZ3JhcGhcbiNzdWJfZyA8LSBpbmR1Y2VkX3N1YmdyYXBoKGdfbCwgdmlkcyA9IG5laWdoYm9ycykgIyBUaGlzIG1ha2VzIGltcG9ydGFudCBub2RlcyArIHRoZWlyIG5laWdoYm9ycyBpbiB0aGUgbmV0d29ya1xuZ190b3B4IDwtIGluZHVjZWRfc3ViZ3JhcGgoZ19sX3MsIHZpZHMgPSBpbXBvcnRhbnRfbm9kZXMpICMgVGhpcyBtYWtlcyBpdCBvbmx5IHRoZSBpbXBvcnRhbnQgbm9kZXMgYXJlIGluIHRoZSBuZXR3b3JrXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb21wdXRlIHRvdGFsIG91dCBhbmQgaW4gd2VpZ2h0c1xub3V0X3N0cmVuZ3RoIDwtIHN0cmVuZ3RoKGdfbF9zLCBtb2RlID0gXCJvdXRcIiwgd2VpZ2h0cyA9IEUoZ19sX3MpJHdlaWdodClcbmluX3N0cmVuZ3RoIDwtIHN0cmVuZ3RoKGdfbF9zLCBtb2RlID0gXCJpblwiLCB3ZWlnaHRzID0gRShnX2xfcykkd2VpZ2h0KVxuXG4jIFNlbGVjdCB0b3AgbGVuZGVycyBhbmQgYm9ycm93ZXJzXG50b3BfbGVuZGVycyA8LSBuYW1lcyhzb3J0KG91dF9zdHJlbmd0aCwgZGVjcmVhc2luZyA9IFRSVUUpKVsxOjEwXVxudG9wX2JvcnJvd2VycyA8LSBuYW1lcyhzb3J0KGluX3N0cmVuZ3RoLCBkZWNyZWFzaW5nID0gVFJVRSkpWzE6MTBdXG5cbiMgQ29tYmluZSB1bmlxdWUgbm9kZXNcbmltcG9ydGFudF9ub2RlcyA8LSB1bmlxdWUoYyh0b3BfbGVuZGVycywgdG9wX2JvcnJvd2VycykpXG5cbiMgRmluZCB0aGVpciBuZWlnaGJvcnNcbm5laWdoYm9ycyA8LSB1bmlxdWUodW5saXN0KGlncmFwaDo6bmVpZ2hib3Job29kKGdfbF9zLCBvcmRlciA9IDEsIG5vZGVzID0gaW1wb3J0YW50X25vZGVzLCBtb2RlID0gXCJhbGxcIikpKVxuXG4jIENyZWF0ZSB0aGUgc3ViZ3JhcGhcbiNzdWJfZyA8LSBpbmR1Y2VkX3N1YmdyYXBoKGdfbCwgdmlkcyA9IG5laWdoYm9ycykgIyBUaGlzIG1ha2VzIGltcG9ydGFudCBub2RlcyArIHRoZWlyIG5laWdoYm9ycyBpbiB0aGUgbmV0d29ya1xuZ190b3B4IDwtIGluZHVjZWRfc3ViZ3JhcGgoZ19sX3MsIHZpZHMgPSBpbXBvcnRhbnRfbm9kZXMpICMgVGhpcyBtYWtlcyBpdCBvbmx5IHRoZSBpbXBvcnRhbnQgbm9kZXMgYXJlIGluIHRoZSBuZXR3b3JrXG5gYGAifQ== -->
-<pre class="r"><code># Compute total out and in weights
-out_strength &lt;- strength(g_l_s, mode = &quot;out&quot;, weights = E(g_l_s)$weight)
-in_strength &lt;- strength(g_l_s, mode = &quot;in&quot;, weights = E(g_l_s)$weight)
-
-# Select top lenders and borrowers
-top_lenders &lt;- names(sort(out_strength, decreasing = TRUE))[1:10]
-top_borrowers &lt;- names(sort(in_strength, decreasing = TRUE))[1:10]
-
-# Combine unique nodes
-important_nodes &lt;- unique(c(top_lenders, top_borrowers))
-
-# Find their neighbors
-neighbors &lt;- unique(unlist(igraph::neighborhood(g_l_s, order = 1, nodes = important_nodes, mode = &quot;all&quot;)))
-
-# Create the subgraph
-#sub_g &lt;- induced_subgraph(g_l, vids = neighbors) # This makes important nodes + their neighbors in the network
-g_topx &lt;- induced_subgraph(g_l_s, vids = important_nodes) # This makes it only the important nodes are in the network</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Verify correct subgraph has been implemented</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJMDUxYldKbGNpQnZaaUIyWlhKMGFXTmxjeUJoYm1RZ1pXUm5aWE5jYm5aamIzVnVkQ2huWDNSdmNIZ3BYRzVnWUdBaWZRPT0gLS0+XG5cbmBgYHJcbiNOdW1iZXIgb2YgdmVydGljZXMgYW5kIGVkZ2VzXG52Y291bnQoZ190b3B4KVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI051bWJlciBvZiB2ZXJ0aWNlcyBhbmQgZWRnZXNcbnZjb3VudChnX3RvcHgpXG5gYGAifQ== -->
-<pre class="r"><code>#Number of vertices and edges
-vcount(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDIwXG4ifQ== -->
-<pre><code>[1] 20</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVaV052ZFc1MEtHZGZkRzl3ZUNsY2JtQmdZQ0o5IC0tPlxuXG5gYGByXG5lY291bnQoZ190b3B4KVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZWNvdW50KGdfdG9weClcbmBgYCJ9 -->
-<pre class="r"><code>ecount(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDkzXG4ifQ== -->
-<pre><code>[1] 93</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVaM05wZW1Vb1oxOTBiM0I0S1Z4dVlHQmdJbjA9IC0tPlxuXG5gYGByXG5nc2l6ZShnX3RvcHgpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3NpemUoZ190b3B4KVxuYGBgIn0= -->
-<pre class="r"><code>gsize(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDkzXG4ifQ== -->
-<pre><code>[1] 93</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVZMjkxYm5SZlkyOXRjRzl1Wlc1MGN5aG5YM1J2Y0hncFhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxuY291bnRfY29tcG9uZW50cyhnX3RvcHgpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuY291bnRfY29tcG9uZW50cyhnX3RvcHgpXG5gYGAifQ== -->
-<pre class="r"><code>count_components(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDFcbiJ9 -->
-<pre><code>[1] 1</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVhWE5mWTI5dWJtVmpkR1ZrS0dkZmRHOXdlQ2xjYm1CZ1lDSjkgLS0+XG5cbmBgYHJcbmlzX2Nvbm5lY3RlZChnX3RvcHgpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaXNfY29ubmVjdGVkKGdfdG9weClcbmBgYCJ9 -->
-<pre class="r"><code>is_connected(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFRSVUVcbiJ9 -->
-<pre><code>[1] TRUE</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjSEpwYm5Rb1hDSk5kV3gwYVdWa1oyVnpJR1Y0YVhOME9sd2lLVnh1WUdCZ0luMD0gLS0+XG5cbmBgYHJcbnByaW50KFwiTXVsdGllZGdlcyBleGlzdDpcIilcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoXCJNdWx0aWVkZ2VzIGV4aXN0OlwiKVxuYGBgIn0= -->
-<pre class="r"><code>print(&quot;Multiedges exist:&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiTXVsdGllZGdlcyBleGlzdDpcIlxuIn0= -->
-<pre><code>[1] &quot;Multiedges exist:&quot;</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVZVzU1WDIxMWJIUnBjR3hsS0dkZmRHOXdlQ2xjYm1CZ1lDSjkgLS0+XG5cbmBgYHJcbmFueV9tdWx0aXBsZShnX3RvcHgpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW55X211bHRpcGxlKGdfdG9weClcbmBgYCJ9 -->
-<pre class="r"><code>any_multiple(g_topx)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIEZBTFNFXG4ifQ== -->
-<pre><code>[1] FALSE</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Building subgraph of 29 globally systemically important banks</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVhVzF3YjNKMFlXNTBZbUZ1YTNNZ1BDMGdZeWhjYmlBZ0owcFFJRTFQVWtkQlRpQkRTRUZUUlNjc1hHNGdJQ2REU1ZSSkp5eGNiaUFnSjBoVFFrTW5MRnh1SUNBblFVSWdRMGhKVGtFbkxGeHVJQ0FuUWtGT1N5QlBSaUJCVFVWU1NVTkJKeXhjYmlBZ0owSkJUa3NnVDBZZ1EwaEpUa0VuTEZ4dUlDQW5Ra0ZTUTB4QldWTW5MRnh1SUNBblFrNVFJRkJCVWtsQ1FWTW5MRnh1SUNBblEwaEpUa0VnUTA5T1UxUlNWVU5VU1U5T0lFSkJUa3NuTEZ4dUlDQW5SRVZWVkZORFNFVWdRa0ZPU3ljc1hHNGdJQ2RIVDB4RVRVRk9JRk5CUTBoVEp5eGNiaUFnSjBOU1JVUkpWQ0JCUjFKSlEwOU1SU2NzWEc0Z0lDZEpRMElnUTBoSlRrRW5MRnh1SUNBblRWVkdSeWNzWEc0Z0lDZFZRbE1uTEZ4dUlDQW5Ra0ZPU3lCUFJpQkRUMDFOVlU1SlEwRlVTVTlPVXljc1hHNGdJQ2RDVGxrbkxGeHVJQ0FuUWxCRFJTY3NYRzRnSUNkSlRrY2dRa0ZPU3ljc1hHNGdJQ2ROU1ZwVlNFOG5MRnh1SUNBblRVOVNSMEZPSUZOVVFVNU1SVmtuTEZ4dUlDQW5VazlaUVV3Z1FrRk9TeUJQUmlCRFFVNUJSRUVuTEZ4dUlDQW5Ra0ZPUTA4Z1UwRk9WRUZPUkVWU0p5eGNiaUFnSjFOUFEwbEZWRVVnUjBWT1JWSkJURVVuTEZ4dUlDQW5VMVJCVGtSQlVrUWdRMGhCVWxSRlVrVkVKeXhjYmlBZ0oxTlVRVlJGSUZOVVVrVkZWQ0JDUVU1TEp5eGNiaUFnSjFOTlFrTW5MRnh1SUNBblZFOVNUMDVVVHlCRVQwMUpUa2xQVGlCQ1FVNUxKeXhjYmlBZ0oxZEZURXhUSUVaQlVrZFBKMXh1S1Z4dVoxOXphV0lnUEMwZ2FXNWtkV05sWkY5emRXSm5jbUZ3YUNoblgyeGZjeXdnZG1sa2N5QTlJR2x0Y0c5eWRHRnVkR0poYm10ektTQmNibUJnWUNKOSAtLT5cblxuYGBgclxuaW1wb3J0YW50YmFua3MgPC0gYyhcbiAgJ0pQIE1PUkdBTiBDSEFTRScsXG4gICdDSVRJJyxcbiAgJ0hTQkMnLFxuICAnQUIgQ0hJTkEnLFxuICAnQkFOSyBPRiBBTUVSSUNBJyxcbiAgJ0JBTksgT0YgQ0hJTkEnLFxuICAnQkFSQ0xBWVMnLFxuICAnQk5QIFBBUklCQVMnLFxuICAnQ0hJTkEgQ09OU1RSVUNUSU9OIEJBTksnLFxuICAnREVVVFNDSEUgQkFOSycsXG4gICdHT0xETUFOIFNBQ0hTJyxcbiAgJ0NSRURJVCBBR1JJQ09MRScsXG4gICdJQ0IgQ0hJTkEnLFxuICAnTVVGRycsXG4gICdVQlMnLFxuICAnQkFOSyBPRiBDT01NVU5JQ0FUSU9OUycsXG4gICdCTlknLFxuICAnQlBDRScsXG4gICdJTkcgQkFOSycsXG4gICdNSVpVSE8nLFxuICAnTU9SR0FOIFNUQU5MRVknLFxuICAnUk9ZQUwgQkFOSyBPRiBDQU5BREEnLFxuICAnQkFOQ08gU0FOVEFOREVSJyxcbiAgJ1NPQ0lFVEUgR0VORVJBTEUnLFxuICAnU1RBTkRBUkQgQ0hBUlRFUkVEJyxcbiAgJ1NUQVRFIFNUUkVFVCBCQU5LJyxcbiAgJ1NNQkMnLFxuICAnVE9ST05UTyBET01JTklPTiBCQU5LJyxcbiAgJ1dFTExTIEZBUkdPJ1xuKVxuZ19zaWIgPC0gaW5kdWNlZF9zdWJncmFwaChnX2xfcywgdmlkcyA9IGltcG9ydGFudGJhbmtzKSBcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW1wb3J0YW50YmFua3MgPC0gYyhcbiAgJ0pQIE1PUkdBTiBDSEFTRScsXG4gICdDSVRJJyxcbiAgJ0hTQkMnLFxuICAnQUIgQ0hJTkEnLFxuICAnQkFOSyBPRiBBTUVSSUNBJyxcbiAgJ0JBTksgT0YgQ0hJTkEnLFxuICAnQkFSQ0xBWVMnLFxuICAnQk5QIFBBUklCQVMnLFxuICAnQ0hJTkEgQ09OU1RSVUNUSU9OIEJBTksnLFxuICAnREVVVFNDSEUgQkFOSycsXG4gICdHT0xETUFOIFNBQ0hTJyxcbiAgJ0NSRURJVCBBR1JJQ09MRScsXG4gICdJQ0IgQ0hJTkEnLFxuICAnTVVGRycsXG4gICdVQlMnLFxuICAnQkFOSyBPRiBDT01NVU5JQ0FUSU9OUycsXG4gICdCTlknLFxuICAnQlBDRScsXG4gICdJTkcgQkFOSycsXG4gICdNSVpVSE8nLFxuICAnTU9SR0FOIFNUQU5MRVknLFxuICAnUk9ZQUwgQkFOSyBPRiBDQU5BREEnLFxuICAnQkFOQ08gU0FOVEFOREVSJyxcbiAgJ1NPQ0lFVEUgR0VORVJBTEUnLFxuICAnU1RBTkRBUkQgQ0hBUlRFUkVEJyxcbiAgJ1NUQVRFIFNUUkVFVCBCQU5LJyxcbiAgJ1NNQkMnLFxuICAnVE9ST05UTyBET01JTklPTiBCQU5LJyxcbiAgJ1dFTExTIEZBUkdPJ1xuKVxuZ19zaWIgPC0gaW5kdWNlZF9zdWJncmFwaChnX2xfcywgdmlkcyA9IGltcG9ydGFudGJhbmtzKSBcbmBgYCJ9 -->
-<pre class="r"><code>importantbanks &lt;- c(
-  &#39;JP MORGAN CHASE&#39;,
-  &#39;CITI&#39;,
-  &#39;HSBC&#39;,
-  &#39;AB CHINA&#39;,
-  &#39;BANK OF AMERICA&#39;,
-  &#39;BANK OF CHINA&#39;,
-  &#39;BARCLAYS&#39;,
-  &#39;BNP PARIBAS&#39;,
-  &#39;CHINA CONSTRUCTION BANK&#39;,
-  &#39;DEUTSCHE BANK&#39;,
-  &#39;GOLDMAN SACHS&#39;,
-  &#39;CREDIT AGRICOLE&#39;,
-  &#39;ICB CHINA&#39;,
-  &#39;MUFG&#39;,
-  &#39;UBS&#39;,
-  &#39;BANK OF COMMUNICATIONS&#39;,
-  &#39;BNY&#39;,
-  &#39;BPCE&#39;,
-  &#39;ING BANK&#39;,
-  &#39;MIZUHO&#39;,
-  &#39;MORGAN STANLEY&#39;,
-  &#39;ROYAL BANK OF CANADA&#39;,
-  &#39;BANCO SANTANDER&#39;,
-  &#39;SOCIETE GENERALE&#39;,
-  &#39;STANDARD CHARTERED&#39;,
-  &#39;STATE STREET BANK&#39;,
-  &#39;SMBC&#39;,
-  &#39;TORONTO DOMINION BANK&#39;,
-  &#39;WELLS FARGO&#39;
-)
-g_sib &lt;- induced_subgraph(g_l_s, vids = importantbanks) </code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<p>Preparing network objects for further use (ERGM)</p>
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVibVYwWDJ4ZmN5QThMU0JwYm5SbGNtZHlZWEJvT2pwaGMwNWxkSGR2Y21zb1oxOXNYM01wWEc1dVpYUmZkRzl3ZUNBOExTQnBiblJsY21keVlYQm9PanBoYzA1bGRIZHZjbXNvWjE5MGIzQjRLVnh1Ym1WMFgzTnBZaUE4TFNCcGJuUmxjbWR5WVhCb09qcGhjMDVsZEhkdmNtc29aMTl6YVdJcFhHNWNibTVsZEhkdmNtczZPbk5sZEM1bFpHZGxMbUYwZEhKcFluVjBaU2h1WlhSZmJGOXpMQ0JjSW5kbGFXZG9kRndpTENCcFozSmhjR2c2T21kbGRDNWxaR2RsTG1GMGRISnBZblYwWlNoblgyeGZjeXdnWENKM1pXbG5hSFJjSWlrcFhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxubmV0X2xfcyA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19sX3MpXG5uZXRfdG9weCA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ190b3B4KVxubmV0X3NpYiA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19zaWIpXG5cbm5ldHdvcms6OnNldC5lZGdlLmF0dHJpYnV0ZShuZXRfbF9zLCBcIndlaWdodFwiLCBpZ3JhcGg6OmdldC5lZGdlLmF0dHJpYnV0ZShnX2xfcywgXCJ3ZWlnaHRcIikpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubmV0X2xfcyA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19sX3MpXG5uZXRfdG9weCA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ190b3B4KVxubmV0X3NpYiA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19zaWIpXG5cbm5ldHdvcms6OnNldC5lZGdlLmF0dHJpYnV0ZShuZXRfbF9zLCBcIndlaWdodFwiLCBpZ3JhcGg6OmdldC5lZGdlLmF0dHJpYnV0ZShnX2xfcywgXCJ3ZWlnaHRcIikpXG5gYGAifQ== -->
-<pre class="r"><code>net_l_s &lt;- intergraph::asNetwork(g_l_s)
-net_topx &lt;- intergraph::asNetwork(g_topx)
-net_sib &lt;- intergraph::asNetwork(g_sib)
-
-network::set.edge.attribute(net_l_s, &quot;weight&quot;, igraph::get.edge.attribute(g_l_s, &quot;weight&quot;))</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXHUwMDFiRzI7XHUwMDFiSDI7V2FybmluZ1x1MDAxYmg6IGBnZXQuZWRnZS5hdHRyaWJ1dGUoKWAgd2FzIGRlcHJlY2F0ZWQgaW4gaWdyYXBoIDIuMC4wLlxuaSBQbGVhc2UgdXNlIGBlZGdlX2F0dHIoKWAgaW5zdGVhZC5cblRoaXMgd2FybmluZyBpcyBkaXNwbGF5ZWQgb25jZSBldmVyeSA4IGhvdXJzLlxuQ2FsbCBgbGlmZWN5Y2xlOjpsYXN0X2xpZmVjeWNsZV9cdTAwMWJdODs7aWRlOnJ1bjp3YXJuaW5ncygpXHUwMDA3d2FybmluZ3MoKVx1MDAxYl04OztcdTAwMDdgIHRvIHNlZSB3aGVyZSB0aGlzIHdhcm5pbmcgd2FzIGdlbmVyYXRlZC5cdTAwMWJnXG4ifQ== -->
-<pre><code>G2;H2;Warningh: `get.edge.attribute()` was deprecated in igraph 2.0.0.
-i Please use `edge_attr()` instead.
-This warning is displayed once every 8 hours.
-Call `lifecycle::last_lifecycle_]8;;ide:run:warnings()warnings()]8;;` to see where this warning was generated.g</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJXWlhKcFpua2daV1JuWlNCM1pXbG5hSFJ6SUNoeVpYQnNZV05sSUZ3aWQyVnBaMmgwWENJZ2QybDBhQ0JoWTNSMVlXd2daV1JuWlNCaGRIUnlhV0oxZEdVZ2JtRnRaU2xjYmlOdVpYUjNiM0pyT2pwelpYUXVaV1JuWlM1aGRIUnlhV0oxZEdVb2JtVjBMQ0JjSW5kbGFXZG9kRndpTENCcFozSmhjR2c2T21kbGRDNWxaR2RsTG1GMGRISnBZblYwWlNoblgyd3NJRndpZDJWcFoyaDBYQ0lwS1Z4dVhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxuIyBWZXJpZnkgZWRnZSB3ZWlnaHRzIChyZXBsYWNlIFwid2VpZ2h0XCIgd2l0aCBhY3R1YWwgZWRnZSBhdHRyaWJ1dGUgbmFtZSlcbiNuZXR3b3JrOjpzZXQuZWRnZS5hdHRyaWJ1dGUobmV0LCBcIndlaWdodFwiLCBpZ3JhcGg6OmdldC5lZGdlLmF0dHJpYnV0ZShnX2wsIFwid2VpZ2h0XCIpKVxuXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBWZXJpZnkgZWRnZSB3ZWlnaHRzIChyZXBsYWNlIFwid2VpZ2h0XCIgd2l0aCBhY3R1YWwgZWRnZSBhdHRyaWJ1dGUgbmFtZSlcbiNuZXR3b3JrOjpzZXQuZWRnZS5hdHRyaWJ1dGUobmV0LCBcIndlaWdodFwiLCBpZ3JhcGg6OmdldC5lZGdlLmF0dHJpYnV0ZShnX2wsIFwid2VpZ2h0XCIpKVxuXG5gYGAifQ== -->
-<pre class="r"><code># Verify edge weights (replace &quot;weight&quot; with actual edge attribute name)
-#network::set.edge.attribute(net, &quot;weight&quot;, igraph::get.edge.attribute(g_l, &quot;weight&quot;))
-</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVabWwwWDNkbGFXZG9kR1ZrSUR3dElHVnlaMjBvYm1WMFgzTnBZaUIrSUdWa1oyVnpJQ3NnYlhWMGRXRnNMQ0JjYmlBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtVnpjRzl1YzJVZ1BTQmNJbmRsYVdkb2RGd2lMQ0JjYmlBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ2NtVm1aWEpsYm1ObElEMGdma2RsYjIxbGRISnBZeXdnWEc0Z0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lHTnZiblJ5YjJ3Z1BTQmpiMjUwY205c0xtVnlaMjBvVFVOTlF5NXBiblJsY25aaGJDQTlJREV3TURBd0xGeHVJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lFMURUVU11YzJGdGNHeGxjMmw2WlNBOUlESXdNREF3TEZ4dUlDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUUxRFRVTXVZblZ5Ym1sdUlEMGdNVEF3TUNrcFhHNWdZR0FpZlE9PSAtLT5cblxuYGBgclxuZml0X3dlaWdodGVkIDwtIGVyZ20obmV0X3NpYiB+IGVkZ2VzICsgbXV0dWFsLCBcbiAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgcmVmZXJlbmNlID0gfkdlb21ldHJpYywgXG4gICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5pbnRlcnZhbCA9IDEwMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1DTUMuYnVybmluID0gMTAwMCkpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0X3dlaWdodGVkIDwtIGVyZ20obmV0X3NpYiB+IGVkZ2VzICsgbXV0dWFsLCBcbiAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgcmVmZXJlbmNlID0gfkdlb21ldHJpYywgXG4gICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5pbnRlcnZhbCA9IDEwMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1DTUMuYnVybmluID0gMTAwMCkpXG5gYGAifQ== -->
+<pre class="r"><code>fit_weighted &lt;- ergm(net_sib ~ edges + mutual, 
+                    response = &quot;weight&quot;, 
+                    reference = ~Geometric, 
+                    control = control.ergm(MCMC.interval = 10000,
+                                           MCMC.samplesize = 20000,
+                                           MCMC.burnin = 1000))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJME5vWldOcklHMXZaR1ZzSUdadmNtMWhkR2x2YmlCM2IzSnJaV1FnWVhNZ2FXNTBaVzVrWldSY2JuTjFiVzFoY25rb2JtVjBYMnhmY3lsY2JtNWxkSGR2Y21zNk9teHBjM1F1WldSblpTNWhkSFJ5YVdKMWRHVnpLRzVsZEY5c1gzTXBYRzVnWUdBaWZRPT0gLS0+XG5cbmBgYHJcbiNDaGVjayBtb2RlbCBmb3JtYXRpb24gd29ya2VkIGFzIGludGVuZGVkXG5zdW1tYXJ5KG5ldF9sX3MpXG5uZXR3b3JrOjpsaXN0LmVkZ2UuYXR0cmlidXRlcyhuZXRfbF9zKVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI0NoZWNrIG1vZGVsIGZvcm1hdGlvbiB3b3JrZWQgYXMgaW50ZW5kZWRcbnN1bW1hcnkobmV0X2xfcylcbm5ldHdvcms6Omxpc3QuZWRnZS5hdHRyaWJ1dGVzKG5ldF9sX3MpXG5gYGAifQ== -->
-<pre class="r"><code>#Check model formation worked as intended
-summary(net_l_s)
-network::list.edge.attributes(net_l_s)</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVabWwwWDNkbGFXZG9kREl3SUR3dElHVnlaMjBvYm1WMFgyeGZjeUIrSUdWa1oyVnpJQ3NnYlhWMGRXRnNLR1p2Y20wZ1BTQmNJbTVoWW5Oa2FXWm1YQ0lwTEZ4dUlDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdjbVZ6Y0c5dWMyVWdQU0JjSW5kbGFXZG9kRndpTENCY2JpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJSEpsWm1WeVpXNWpaU0E5SUg1SFpXOXRaWFJ5YVdNc1hHNGdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0IyWlhKaWIzTmxJRDBnTlN4Y2JpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJR052Ym5SeWIyd2dQU0JqYjI1MGNtOXNMbVZ5WjIwb1RVTk5ReTVpZFhKdWFXNGdQU0ExTURBd0xDQmNiaUFnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdUVU5OUXk1ellXMXdiR1Z6YVhwbElEMGdOVEF3TUN4Y2JpQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ1RVTk5ReTVwYm5SbGNuWmhiQ0E5SURFd01EQXdMQ0JjYmlBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnVFVOTlRFVXViV0Y0YVhRZ1BTQXpNQ3dzSUZ4dUlDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNCTlEwMU1SUzV6ZEdWd2JHVnVaM1JvSUQwZ01DNHlMQ0JjYmlBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnVFVOTlRFVXVaR1Z1YzJsMGVTNW5kV0Z5WkNBOUlERXdMRnh1SUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0J3WVhKaGJHeGxiQ0E5SURFeUxGeHVJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQWdJQ0FnSUNBZ0lDQnpaV1ZrSUQwZ01USXpLU2xjYm5OMWJXMWhjbmtvWm1sMFgzZGxhV2RvZERJd0tWeHVZR0JnSW4wPSAtLT5cblxuYGBgclxuZml0X3dlaWdodDIwIDwtIGVyZ20obmV0X2xfcyB+IGVkZ2VzICsgbXV0dWFsKGZvcm0gPSBcIm5hYnNkaWZmXCIpLFxuICAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsXG4gICAgICAgICAgICAgICAgICAgICB2ZXJib3NlID0gNSxcbiAgICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5idXJuaW4gPSA1MDAwLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5zYW1wbGVzaXplID0gNTAwMCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5pbnRlcnZhbCA9IDEwMDAwLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUubWF4aXQgPSAzMCwsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNQ01MRS5zdGVwbGVuZ3RoID0gMC4yLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUuZGVuc2l0eS5ndWFyZCA9IDEwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbCA9IDEyLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWVkID0gMTIzKSlcbnN1bW1hcnkoZml0X3dlaWdodDIwKVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZml0X3dlaWdodDIwIDwtIGVyZ20obmV0X2xfcyB+IGVkZ2VzICsgbXV0dWFsKGZvcm0gPSBcIm5hYnNkaWZmXCIpLFxuICAgICAgICAgICAgICAgICAgICAgcmVzcG9uc2UgPSBcIndlaWdodFwiLCBcbiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsXG4gICAgICAgICAgICAgICAgICAgICB2ZXJib3NlID0gNSxcbiAgICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5idXJuaW4gPSA1MDAwLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5zYW1wbGVzaXplID0gNTAwMCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5pbnRlcnZhbCA9IDEwMDAwLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUubWF4aXQgPSAzMCwsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNQ01MRS5zdGVwbGVuZ3RoID0gMC4yLCBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUuZGVuc2l0eS5ndWFyZCA9IDEwLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbCA9IDEyLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWVkID0gMTIzKSlcbnN1bW1hcnkoZml0X3dlaWdodDIwKVxuYGBgIn0= -->
+<pre class="r"><code>fit_weight20 &lt;- ergm(net_l_s ~ edges + mutual(form = &quot;nabsdiff&quot;),
+                     response = &quot;weight&quot;, 
+                     reference = ~Geometric,
+                     verbose = 5,
+                     control = control.ergm(MCMC.burnin = 5000, 
+                                            MCMC.samplesize = 5000,
+                                            MCMC.interval = 10000, 
+                                            MCMLE.maxit = 30,, 
+                                            MCMLE.steplength = 0.2, 
+                                            MCMLE.density.guard = 10,
+                                            parallel = 12,
+                                            seed = 123))
+summary(fit_weight20)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-</div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlByb2Nlc3NpbmcgTmV0d29yayINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNClRoaXMgbm90ZWJvb2tzDQpJbnB1dDogRGF0YWZyYW1lDQpPdXRwdXQ6IA0KLSBnOiBpZ3JhcGggZnJvbSBkYXRhZnJhbWUNCi0gZ19sOiBsYXJnZXN0IGNvbm5lY3RlZCBjb21wb25lbnQgb2YgZw0KLSBnX2xfczogbGFyZ2VzdCBjb25uZWN0ZWQgc2ltcGxpZmllZCBjb21wb25lbnQgaWdyYXBoIGZyb20gZyAtPiBnX2wgLT4gZ19sX3MgKHN1bW1lZCBlZGdlcyA9IHNpbXBsaWZpZWQpDQotIGdfdG9weDogbW9zdCBpbXBvcnRhbnQgWCBhbW91bnQgb2YgYmFua3Mgc2ltcGxpZmllZCAgZ19sX3MgLT4gZ190b3B4IA0KLSBnX3NpYiA6IG9ubHkgc3lzdGVtaWNhbGx5IGltcG9ydGFudCBiYW5rcywgc2ltcGxpZmllZCBnX2xfcyAtPiBnX3NpYg0KDQotIG5ldF9sX3M6IG5ldHdvcmsgb2JqZWN0IG9mIGdfbF9zDQotIG5ldF90b3B4OiBuZXR3b3JrIG9iamVjdCBvZiBnX3RvcHgNCi0gbmV0X3NpYjogbmV0d29yayBvYmplY3Qgb2YgZ19zaWINCg0KYGBge3IgaW5jbHVkZT1GQUxTRX0NCiNJbnN0YWxsIGFuZCBMb2FkIHJlcXVpcmVkIHBhY2thZ2VzDQppZiAoIXJlcXVpcmUoJ2RwbHlyJykpIGluc3RhbGwucGFja2FnZXMoJ2RwbHlyJyk7IGxpYnJhcnkoJ2RwbHlyJykNCmlmICghcmVxdWlyZSgncmVhZHhsJykpIGluc3RhbGwucGFja2FnZXMoJ3JlYWR4bCcpOyBsaWJyYXJ5KCdyZWFkeGwnKQ0KaWYgKCFyZXF1aXJlKCdzdHJpbmdyJykpIGluc3RhbGwucGFja2FnZXMoJ3N0cmluZ3InKTsgbGlicmFyeSgnc3RyaW5ncicpDQppZiAoIXJlcXVpcmUoJ3B1cnJyJykpIGluc3RhbGwucGFja2FnZXMoJ3B1cnJyJyk7IGxpYnJhcnkoJ3B1cnJyJykNCmlmICghcmVxdWlyZSgndGlkeXInKSkgaW5zdGFsbC5wYWNrYWdlcygndGlkeXInKTsgbGlicmFyeSgndGlkeXInKQ0KaWYgKCFyZXF1aXJlKCdzdHJpbmdkaXN0JykpIGluc3RhbGwucGFja2FnZXMoJ3N0cmluZ2Rpc3QnKTsgbGlicmFyeSgnc3RyaW5nZGlzdCcpDQppZiAoIXJlcXVpcmUoJ2ludGVyZ3JhcGgnKSkgaW5zdGFsbC5wYWNrYWdlcygnaW50ZXJncmFwaCcpOyBsaWJyYXJ5KCdpbnRlcmdyYXBoJykNCmlmICghcmVxdWlyZSgnZ2dyYXBoJykpIGluc3RhbGwucGFja2FnZXMoJ2dncmFwaCcpOyBsaWJyYXJ5KCdnZ3JhcGgnKQ0KaWYgKCFyZXF1aXJlKCd2aXNOZXR3b3JrJykpIGluc3RhbGwucGFja2FnZXMoJ3Zpc05ldHdvcmsnKTsgbGlicmFyeSgndmlzTmV0d29yaycpDQppZiAoIXJlcXVpcmUoJ2lncmFwaCcpKSBpbnN0YWxsLnBhY2thZ2VzKCdpZ3JhcGgnKTsgbGlicmFyeSgnaWdyYXBoJykNCmBgYA0KDQpSZWFkIGFuZCBwcm9jZXNzIGRhdGENCmBgYHtyfQ0KI1JlYWRpbmcgaW4gcHJvY2Vzc2VkIGRhdGENCmRmIDwtIHJlYWQuY3N2KCIuL1Byb2Nlc3NpbmcvcHJvY2Vzc2VkX2xvYW5fdjMuY3N2IikNCmBgYA0KDQpgYGB7cn0NCiMgR3JvdXAgYW5kIHN1bSB0aGUgbG9hbnMgdG9nZXRoZXIsIHJlbmFtZSB0aGUgY29sdW1ucw0KZGZfYWdnIDwtIGRmICU+JQ0KICBncm91cF9ieShMb2FuSUQsIExlbmRlciwgQm9ycm93ZXIpICU+JQ0KICBzdW1tYXJpc2UoDQogIEFzc2lnbmVkTG9hblNoYXJlID0gc3VtKEFzc2lnbmVkTG9hblNoYXJlKSwNCiAgUm9sZXMgPSBwYXN0ZSh1bmlxdWUoUm9sZSksIGNvbGxhcHNlID0gIiwgIiksDQogIFNlY3RvciA9IGZpcnN0KFNlY3RvciksDQogIE1hdHVyaXR5RGF0ZSA9IGZpcnN0KE1hdHVyaXR5LkRhdGUpLA0KICBJc3N1ZURhdGUgPSBmaXJzdChJc3N1ZS5EYXRlKSwNCiAgTGVuZGVyUmVnaW9uID0gZmlyc3QoTGVuZGVyUmVnaW9uKSwNCiAgTGVuZGVyTWFya2V0ID0gZmlyc3QoTGVuZGVyTWFya2V0KSwgDQogIEJvcnJvd2VyRG9taWNpbGUgPSBmaXJzdChCb3Jyb3dlckRvbWljaWxlKSwNCiAgVHJhbmNoZVR5cGUgPSBmaXJzdChUcmFuY2hlVHlwZSksDQogIFRyYW5jaGVDdXJyZW5jeSA9IGZpcnN0KFRyYW5jaGVDdXJyZW5jeSksDQogIFNlbmlvcml0eSA9IGZpcnN0KFNlbmlvcml0eSkNCiAgIyBldGMuLi4NCiAgKQ0KDQpgYGANCg0KTWFrZSBnIGZyb20gZGF0YWZyYW1lDQpgYGB7cn0NCiNnIGJlaW5nIHRoZSBsYXJnZSBkYXRhZnJhbWUgZnJvbSB0aGUgcHJvY2Vzc2VkIGRhdGEgdHVybmVkIGludG8gYW4gaWdyYXBoIG9iamVjdCwgbm90IHByb2Nlc3NlZA0KZyA8LSBncmFwaF9mcm9tX2RhdGFfZnJhbWUoDQogIGQgPSBkZl9hZ2dbLCBjKCJMZW5kZXIiLCAiQm9ycm93ZXIiLCAiQXNzaWduZWRMb2FuU2hhcmUiLCAiUm9sZXMiKV0sDQogIGRpcmVjdGVkID0gVFJVRQ0KKQ0KDQojIFNldCB0aGUgJ0Fzc2lnbmVkTG9hblNoYXJlJyBhcyB0aGUgZWRnZSB3ZWlnaHQNCkUoZykkd2VpZ2h0IDwtIEUoZykkQXNzaWduZWRMb2FuU2hhcmUNCg0KIyBPcHRpb25hbGx5IGtlZXAgJ1JvbGVzJyBhcyBhbiBlZGdlIGF0dHJpYnV0ZToNCiNFKGcpJHJvbGVzIDwtIGRmX2FnZyRSb2xlcw0KYGBgDQoNCg0KQ3JlYXRlIHN1YmdyYXBoIGdfbCBiZWluZyB0aGUgbGFyZ2VzdCBjb25uZWN0ZWQgY29tcG9uZW50IG9mIGcgDQpgYGB7cn0NCiMgSWRlbnRpZnkgY29ubmVjdGVkIGNvbXBvbmVudHMNCmNvbXBvbmVudHMgPC0gaWdyYXBoOjpjb21wb25lbnRzKGFzX3VuZGlyZWN0ZWQoZykpDQoNCiMgRmluZCB0aGUgc2l6ZSBvZiB0aGUgbGFyZ2VzdCBjb25uZWN0ZWQgY29tcG9uZW50DQpwcmludChtYXgoY29tcG9uZW50cyRjc2l6ZSkpDQoNCiNDb3VsZCB1c2UgbGFyZ2VzdF9jb21wb25lbnQoKSBidXQgZG9lcyBub3QgcmV0YWluIFZlcnRleElEIG9mIG9yaWdpbmFsIGdyYXBoIC0gY291bGQgYmUgdXNlZCBsYXRlciBpcyBub3QgbmVlZGVkDQoNCiMgRmluZCB0aGUgY29tcG9uZW50IElEIG9mIHRoZSBsYXJnZXN0IGNvbm5lY3RlZCBjb21wb25lbnQNCmxhcmdlc3RfY29tcG9uZW50X2lkIDwtIHdoaWNoLm1heChjb21wb25lbnRzJGNzaXplKQ0KDQojIENyZWF0ZSBhIHN1YmdyYXBoIG9mIHRoZSBsYXJnZXN0IGNvbm5lY3RlZCBjb21wb25lbnQNCmdfbCA8LSBpbmR1Y2VkX3N1YmdyYXBoKGcsIHZpZHMgPSB3aGljaChjb21wb25lbnRzJG1lbWJlcnNoaXAgPT0gbGFyZ2VzdF9jb21wb25lbnRfaWQpKQ0KYGBgDQoNCmBgYHtyfQ0KIyBUaGlzIGlzIGEgZml4IGZvciBzeW1ib2xpY2FsbHkgd2VpZ2h0ZWQgZWRnZXMsIGZvciBjb3JyZWN0bHkgY2FsY3VsYXRpbmcgY2VudHJhbGl0eSBtZWFzdXJlcyBsYXRlcg0KIyBUaGV5IGFyZSBqdXN0IHRoZSByZW1haW5zIG9mIFNvbGUgbGVuZGVyIDEwMCUgc2NhbGUgZmFjdG9yIGNhbGN1bGF0aW9uDQpFKGdfbCkkd2VpZ2h0W0UoZ19sKSR3ZWlnaHQgPT0gMF0gPC0gMC4xDQpgYGANCg0KDQpTaW1wbGlmeSBsYXJnZXN0IGNvbm5lY3RlZCBjb21wb25lbnQgZ19sIGludG8gZ19sX3MsIHN1bW1pbmcgdGhlIGVkZ2VzIGJldHdlZW4gdHdvIG5vZGVzDQpSZW1vdmluZyBhdHRyaWJ1dGVzIG5vdCB1c2VkIGZvciBjdXJyZW50IGFuYWx5c2lzIGdvYWxzDQpgYGB7cn0NCiMgZ19sX3MgYmVpbmcgdGhlIHNpbXBsaWZpZWQgZ3JhcGgsIHN1bW1pbmcgYWxsIHdlaWdodHMgYmV0d2VlbiB0aGUgc2FtZSB0d28gbm9kZXMuIA0KZ19sX3MgPC0gaWdyYXBoOjpzaW1wbGlmeSgNCiAgZ19sLCANCiAgZWRnZS5hdHRyLmNvbWIgPSBsaXN0KHdlaWdodCA9ICJzdW0iKSwNCiAgcmVtb3ZlLmxvb3BzID0gVFJVRQ0KKQ0KZ19sX3MgPC0gZGVsZXRlX2VkZ2VfYXR0cihnX2xfcywgIlJvbGVzIikNCmdfbF9zIDwtIGRlbGV0ZV9lZGdlX2F0dHIoZ19sX3MsICJBc3NpZ25lZExvYW5TaGFyZSIpDQpFKGdfbF9zKSR3ZWlnaHRbRShnX2xfcykkd2VpZ2h0ID09IDAuMV0gPC0gMQ0KRShnX2xfcykkd2VpZ2h0IDwtIHJvdW5kKEUoZ19sX3MpJHdlaWdodCkNCg0KIyBDb25maXJtIE11bGl0ZWRnZXMgaGF2ZSBiZWVuIHN1bW1lZDoNCnByaW50KCJNdWx0aWVkZ2VzIGV4aXN0OiIpDQphbnlfbXVsdGlwbGUoZ19sX3MpDQpgYGANCg0KIyBTdWJncmFwaCBUb3AgMTBzDQpDb21wdXRlIChTYW1wbGUpIFRvcCAxMCBsYXJnZXN0IGJvcnJvd2VycyBhbmQgc2VsbGVycyBieSBVU0QgQW1vdW50IGFuZCBjcmVhdGUgU3ViZ3JhcGgNCmBgYHtyfQ0KIyBDb21wdXRlIHRvdGFsIG91dCBhbmQgaW4gd2VpZ2h0cw0Kb3V0X3N0cmVuZ3RoIDwtIHN0cmVuZ3RoKGdfbF9zLCBtb2RlID0gIm91dCIsIHdlaWdodHMgPSBFKGdfbF9zKSR3ZWlnaHQpDQppbl9zdHJlbmd0aCA8LSBzdHJlbmd0aChnX2xfcywgbW9kZSA9ICJpbiIsIHdlaWdodHMgPSBFKGdfbF9zKSR3ZWlnaHQpDQoNCiMgU2VsZWN0IHRvcCBsZW5kZXJzIGFuZCBib3Jyb3dlcnMNCnRvcF9sZW5kZXJzIDwtIG5hbWVzKHNvcnQob3V0X3N0cmVuZ3RoLCBkZWNyZWFzaW5nID0gVFJVRSkpWzE6MTBdDQp0b3BfYm9ycm93ZXJzIDwtIG5hbWVzKHNvcnQoaW5fc3RyZW5ndGgsIGRlY3JlYXNpbmcgPSBUUlVFKSlbMToxMF0NCg0KIyBDb21iaW5lIHVuaXF1ZSBub2Rlcw0KaW1wb3J0YW50X25vZGVzIDwtIHVuaXF1ZShjKHRvcF9sZW5kZXJzLCB0b3BfYm9ycm93ZXJzKSkNCg0KIyBGaW5kIHRoZWlyIG5laWdoYm9ycw0KbmVpZ2hib3JzIDwtIHVuaXF1ZSh1bmxpc3QoaWdyYXBoOjpuZWlnaGJvcmhvb2QoZ19sX3MsIG9yZGVyID0gMSwgbm9kZXMgPSBpbXBvcnRhbnRfbm9kZXMsIG1vZGUgPSAiYWxsIikpKQ0KDQojIENyZWF0ZSB0aGUgc3ViZ3JhcGgNCiNzdWJfZyA8LSBpbmR1Y2VkX3N1YmdyYXBoKGdfbCwgdmlkcyA9IG5laWdoYm9ycykgIyBUaGlzIG1ha2VzIGltcG9ydGFudCBub2RlcyArIHRoZWlyIG5laWdoYm9ycyBpbiB0aGUgbmV0d29yaw0KZ190b3B4IDwtIGluZHVjZWRfc3ViZ3JhcGgoZ19sX3MsIHZpZHMgPSBpbXBvcnRhbnRfbm9kZXMpICMgVGhpcyBtYWtlcyBpdCBvbmx5IHRoZSBpbXBvcnRhbnQgbm9kZXMgYXJlIGluIHRoZSBuZXR3b3JrDQpgYGANCg0KDQpWZXJpZnkgY29ycmVjdCBzdWJncmFwaCBoYXMgYmVlbiBpbXBsZW1lbnRlZA0KYGBge3J9DQojTnVtYmVyIG9mIHZlcnRpY2VzIGFuZCBlZGdlcw0KdmNvdW50KGdfdG9weCkNCmVjb3VudChnX3RvcHgpDQpnc2l6ZShnX3RvcHgpDQpjb3VudF9jb21wb25lbnRzKGdfdG9weCkNCmlzX2Nvbm5lY3RlZChnX3RvcHgpDQpwcmludCgiTXVsdGllZGdlcyBleGlzdDoiKQ0KYW55X211bHRpcGxlKGdfdG9weCkNCmBgYA0KDQoNCkJ1aWxkaW5nIHN1YmdyYXBoIG9mIDI5IGdsb2JhbGx5IHN5c3RlbWljYWxseSBpbXBvcnRhbnQgYmFua3MNCmBgYHtyfQ0KaW1wb3J0YW50YmFua3MgPC0gYygNCiAgJ0pQIE1PUkdBTiBDSEFTRScsDQogICdDSVRJJywNCiAgJ0hTQkMnLA0KICAnQUIgQ0hJTkEnLA0KICAnQkFOSyBPRiBBTUVSSUNBJywNCiAgJ0JBTksgT0YgQ0hJTkEnLA0KICAnQkFSQ0xBWVMnLA0KICAnQk5QIFBBUklCQVMnLA0KICAnQ0hJTkEgQ09OU1RSVUNUSU9OIEJBTksnLA0KICAnREVVVFNDSEUgQkFOSycsDQogICdHT0xETUFOIFNBQ0hTJywNCiAgJ0NSRURJVCBBR1JJQ09MRScsDQogICdJQ0IgQ0hJTkEnLA0KICAnTVVGRycsDQogICdVQlMnLA0KICAnQkFOSyBPRiBDT01NVU5JQ0FUSU9OUycsDQogICdCTlknLA0KICAnQlBDRScsDQogICdJTkcgQkFOSycsDQogICdNSVpVSE8nLA0KICAnTU9SR0FOIFNUQU5MRVknLA0KICAnUk9ZQUwgQkFOSyBPRiBDQU5BREEnLA0KICAnQkFOQ08gU0FOVEFOREVSJywNCiAgJ1NPQ0lFVEUgR0VORVJBTEUnLA0KICAnU1RBTkRBUkQgQ0hBUlRFUkVEJywNCiAgJ1NUQVRFIFNUUkVFVCBCQU5LJywNCiAgJ1NNQkMnLA0KICAnVE9ST05UTyBET01JTklPTiBCQU5LJywNCiAgJ1dFTExTIEZBUkdPJw0KKQ0KZ19zaWIgPC0gaW5kdWNlZF9zdWJncmFwaChnX2xfcywgdmlkcyA9IGltcG9ydGFudGJhbmtzKSANCmBgYA0KDQpQcmVwYXJpbmcgbmV0d29yayBvYmplY3RzIGZvciBmdXJ0aGVyIHVzZSAoRVJHTSkNCmBgYHtyfQ0KbmV0X2xfcyA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19sX3MpDQpuZXRfdG9weCA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ190b3B4KQ0KbmV0X3NpYiA8LSBpbnRlcmdyYXBoOjphc05ldHdvcmsoZ19zaWIpDQoNCm5ldHdvcms6OnNldC5lZGdlLmF0dHJpYnV0ZShuZXRfbF9zLCAid2VpZ2h0IiwgaWdyYXBoOjpnZXQuZWRnZS5hdHRyaWJ1dGUoZ19sX3MsICJ3ZWlnaHQiKSkNCg0KIyBWZXJpZnkgZWRnZSB3ZWlnaHRzIChyZXBsYWNlICJ3ZWlnaHQiIHdpdGggYWN0dWFsIGVkZ2UgYXR0cmlidXRlIG5hbWUpDQojbmV0d29yazo6c2V0LmVkZ2UuYXR0cmlidXRlKG5ldCwgIndlaWdodCIsIGlncmFwaDo6Z2V0LmVkZ2UuYXR0cmlidXRlKGdfbCwgIndlaWdodCIpKQ0KDQpgYGANCg0KYGBge3J9DQojQ2hlY2sgbW9kZWwgZm9ybWF0aW9uIHdvcmtlZCBhcyBpbnRlbmRlZA0Kc3VtbWFyeShuZXRfbF9zKQ0KbmV0d29yazo6bGlzdC5lZGdlLmF0dHJpYnV0ZXMobmV0X2xfcykNCmBgYA0KDQoNCg0KDQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCiMgaW5zdGFsbC5wYWNrYWdlcygic3RhdG5ldCIpDQojIGluc3RhbGwucGFja2FnZXMoImVyZ20uY291bnQiKQ0KIyBpbnN0YWxsLnBhY2thZ2VzKCJpZ3JhcGgiKQ0KIyBpbnN0YWxsLnBhY2thZ2VzKCJuZXR3b3JrIikNCiMgaW5zdGFsbC5wYWNrYWdlcygidGVyZ20iKQ0KIyBpbnN0YWxsLnBhY2thZ2VzKCJlcmdtLm11bHRpIikNCmBgYA0KDQpgYGB7cn0NCmxpYnJhcnkoZXJnbSkNCmxpYnJhcnkobmV0d29yaykNCmxpYnJhcnkoZXJnbS5jb3VudCkNCmxpYnJhcnkoc3RhdG5ldCkNCmxpYnJhcnkodGVyZ20pDQpgYGANCmBgYHtyfQ0KZml0X3dlaWdodDE5IDwtIGVyZ20obmV0X3RvcHggfiBlZGdlcyArIG11dHVhbChmb3JtID0gIm5hYnNkaWZmIiksDQogICAgICAgICAgICAgICAgICAgICByZXNwb25zZSA9ICJ3ZWlnaHQiLCANCiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsDQogICAgICAgICAgICAgICAgICAgICBjb250cm9sID0gY29udHJvbC5lcmdtKE1DTUMuc2FtcGxlc2l6ZSA9IDIwMDAsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNlZWQgPSAxMjMpKQ0Kc3VtbWFyeShmaXRfd2VpZ2h0MTkpDQpgYGANCmBgYHtyfQ0KZml0X3dlaWdodDIxIDwtIGVyZ20obmV0X3NpYiB+IGVkZ2VzICsgbXV0dWFsKGZvcm0gPSAibmFic2RpZmYiKSwNCiAgICAgICAgICAgICAgICAgICAgIHJlc3BvbnNlID0gIndlaWdodCIsIA0KICAgICAgICAgICAgICAgICAgICAgcmVmZXJlbmNlID0gfkdlb21ldHJpYywNCiAgICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5zYW1wbGVzaXplID0gMjAwMCwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2VlZCA9IDEyMykpDQpzdW1tYXJ5KGZpdF93ZWlnaHQyMSkNCg0KYGBgDQpgYGB7cn0NCmZpdF93ZWlnaHRlZCA8LSBlcmdtKG5ldF9zaWIgfiBlZGdlcyArIG11dHVhbCwgDQogICAgICAgICAgICAgICAgICAgIHJlc3BvbnNlID0gIndlaWdodCIsIA0KICAgICAgICAgICAgICAgICAgICByZWZlcmVuY2UgPSB+R2VvbWV0cmljLCANCiAgICAgICAgICAgICAgICAgICAgY29udHJvbCA9IGNvbnRyb2wuZXJnbShNQ01DLmludGVydmFsID0gMTAwMDAsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5zYW1wbGVzaXplID0gMjAwMDAsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5idXJuaW4gPSAxMDAwKSkNCmBgYA0KDQpgYGB7cn0NCmZpdF93ZWlnaHQyMCA8LSBlcmdtKG5ldF9sX3MgfiBlZGdlcyArIG11dHVhbChmb3JtID0gIm5hYnNkaWZmIiksDQogICAgICAgICAgICAgICAgICAgICByZXNwb25zZSA9ICJ3ZWlnaHQiLCANCiAgICAgICAgICAgICAgICAgICAgIHJlZmVyZW5jZSA9IH5HZW9tZXRyaWMsDQogICAgICAgICAgICAgICAgICAgICB2ZXJib3NlID0gNSwNCiAgICAgICAgICAgICAgICAgICAgIGNvbnRyb2wgPSBjb250cm9sLmVyZ20oTUNNQy5idXJuaW4gPSA1MDAwLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5zYW1wbGVzaXplID0gNTAwMCwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNQy5pbnRlcnZhbCA9IDEwMDAwLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUubWF4aXQgPSAzMCwsIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNQ01MRS5zdGVwbGVuZ3RoID0gMC4yLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTUNNTEUuZGVuc2l0eS5ndWFyZCA9IDEwLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwYXJhbGxlbCA9IDEyLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWVkID0gMTIzKSkNCnN1bW1hcnkoZml0X3dlaWdodDIwKQ0KYGBg</div>
 
 
 
@@ -2118,7 +2028,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("init_LoanNetwork.Rmd");
+  window.initializeSourceEmbed("ERGM_ModelSelection2.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>

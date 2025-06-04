@@ -11,6 +11,7 @@ output: html_notebook
 # install.packages("tergm")
 # install.packages("ergm.multi")
 ```
+
 ```{r}
 library(ergm)
 library(network)
@@ -27,7 +28,12 @@ fit_weight19 <- ergm(net_topx ~ edges + mutual(form = "nabsdiff"),
 summary(fit_weight19)
 ```
 ```{r}
-fit_mutual <- ergm(net_l_s ~ edges + mutual)
+fit_weight21 <- ergm(net_sib ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                            seed = 123))
+summary(fit_weight21)
 
 ```
 ```{r}
@@ -40,15 +46,17 @@ fit_weighted <- ergm(net_sib ~ edges + mutual,
 ```
 
 ```{r}
-fit_weight20 <- ergm(net_sib ~ edges + mutual(form = "nabsdiff"),
+fit_weight20 <- ergm(net_l_s ~ edges + mutual(form = "nabsdiff"),
                      response = "weight", 
                      reference = ~Geometric,
+                     verbose = 5,
                      control = control.ergm(MCMC.burnin = 5000, 
                                             MCMC.samplesize = 5000,
                                             MCMC.interval = 10000, 
                                             MCMLE.maxit = 30,, 
-                                            MCMLE.steplength = 0.5, 
+                                            MCMLE.steplength = 0.2, 
                                             MCMLE.density.guard = 10,
+                                            parallel = 12,
                                             seed = 123))
-summary(fit_weight13)
+summary(fit_weight20)
 ```
