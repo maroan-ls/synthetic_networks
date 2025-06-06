@@ -104,3 +104,62 @@ fit0 <- ergm(
     MCMLE.density.guard.min = 1e5,       # guard will never trip now
 )
 )
+
+
+# ----------------------------- 2iterations test run ------------------
+
+fit0_2it <- ergm(net_l_s ~ offset(nonzero) + sum,
+                 offset.coef = -25,
+                 response    = "w_l10",
+                 reference   = ~Geometric,
+                 verbose = TRUE,
+                 control = control.ergm(
+                   MCMLE.maxit = 2,           # stop after 2 outer iterations
+                   MCMC.burnin = 1e5,
+                   MCMC.samplesize = 5e3,
+                   MCMC.interval = 5e3,
+                   MCMC.prop.args = list(p0 = .999),
+                   parallel = 12,
+                   seed = 123))
+
+
+
+fit1_2it <- ergm(
+  net_l_s ~ offset(nonzero) + sum + CMP,   # <-- new term
+  offset.coef = -25,
+  response    = "w_l10",
+  reference   = ~Poisson,                  # Poisson + CMP is stable
+  init        = c(sum = -5, CMP = 0.5),    # negative start on sum
+  verbose           = TRUE,
+  control = control.ergm(
+    MCMLE.maxit = 2,
+    init.method       = "zero",
+    MCMC.prop.weights = "random",
+    MCMC.prop.args    = list(p0 = 0.9999),
+    MCMC.burnin       = 2e5,
+    MCMC.interval     = 1e4,
+    MCMC.samplesize   = 1e4,
+    parallel          = 12,
+    seed = 123)
+)
+
+
+
+fit1 <- ergm(
+  net_l_s ~ offset(nonzero) +                 # keep edges frozen for now
+    sum + CMP,                        # weight (sum)  + dispersion
+  offset.coef = -25,                          # ??? exp(-25) ??? practically no new edges
+  response    = "w_l10",
+  reference   = ~Poisson,                     # Poisson + CMP lets tail widen
+  init        = c(sum = -5, CMP = 0.5),       # start with weights strongly penalised
+  verbose           = TRUE,
+  control = control.ergm(
+    init.method       = "zero",
+    MCMC.prop.weights = "random",
+    MCMC.prop.args    = list(p0 = 0.9999),
+    MCMC.burnin       = 2e5,
+    MCMC.interval     = 1e4,
+    MCMC.samplesize   = 1e4,
+    parallel          = 12,
+    seed = 123)
+)
