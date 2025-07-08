@@ -4,6 +4,10 @@ author: "Maroan El Sirfy"
 date: "2025-01-27"
 output: html_document
 ---
+This is just a mixed first tries document of fitting the full network into an ergm
+
+
+
 
 ```{r}
 # install.packages("statnet")
@@ -246,4 +250,59 @@ fit_weight15 <- ergm(net_full ~ edges + mutual(form = "nabsdiff"),
                                             MCMLE.density.guard = 100,
                                             seed = 123))
 summary(fit_weight15)
+```
+
+```{r}
+#--- All of these fit_weight20 fail the hotelling.diff.test ----
+fit_weight20 <- ergm(net_l_s ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     verbose = 5,
+                     control = control.ergm(MCMC.burnin = 5000, 
+                                            MCMC.samplesize = 5000,
+                                            MCMC.interval = 10000, 
+                                            MCMLE.maxit = 30,, 
+                                            MCMLE.steplength = 0.2, 
+                                            MCMLE.density.guard = 10,
+                                            parallel = 12,
+                                            seed = 123))
+
+# changing steplenght for more sampling
+fit_weight20 <- ergm(net_l_s ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     verbose = 5,
+                     control = control.ergm(MCMC.burnin = 10000, 
+                                            MCMC.samplesize = 50000,
+                                            MCMC.interval = 1000, 
+                                            MCMLE.maxit = 60,, 
+                                            MCMLE.steplength = 0.25, 
+                                            MCMLE.density.guard = 50,
+                                            seed = 123))
+
+# Changing term mutual to nonzero 
+fit_weight20 <- ergm(net_l_s ~ sum + nonzero,
+                     response = "weight", 
+                     reference = ~Geometric,
+                     verbose = 5,
+                     control = control.ergm(MCMC.burnin = 10000, 
+                                            MCMC.samplesize = 50000,
+                                            MCMC.interval = 1000, 
+                                            MCMLE.maxit = 60,, 
+                                            MCMLE.steplength = 0.25, 
+                                            MCMLE.density.guard = 50,
+                                            parallel = 12,
+                                            seed = 123))
+```
+
+```{r}
+
+# --- This works ----
+fit_weight21 <- ergm(net_sib ~ edges + mutual(form = "nabsdiff"),
+                     response = "weight", 
+                     reference = ~Geometric,
+                     control = control.ergm(MCMC.samplesize = 2000,
+                                            seed = 123))
+summary(fit_weight21)
+
 ```

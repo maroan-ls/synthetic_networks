@@ -184,15 +184,76 @@ importantbanks <- c(
   'SMBC',
   'TORONTO DOMINION BANK',
   'WELLS FARGO'
-)
+)c
 g_sib <- induced_subgraph(g_l_s, vids = importantbanks) 
 ```
+
+
+Make the g_sib a connected network
+```{r}
+## 1.  locate the G-SIB vertices in the big graph
+gsib_vids <- which(V(g_l_s)$name %in% importantbanks)
+
+## 2.  collect their 1-hop neighbourhoods
+##     - order = 1 …… reach exactly one step
+##     - mode  = "all" …… follow both in- and out-going edges
+ego_list  <- neighborhood(g_l_s,
+                          order = 1,
+                          nodes = gsib_vids,
+                          mode  = "all")
+
+## 3.  union the vertex sets and build the induced subgraph
+ego_nodes <- unique(unlist(ego_list))
+g_ego    <- induced_subgraph(g_l_s, vids = ego_nodes)
+
+## 4.  quick sanity checks
+cat("nodes:", vcount(g_ego), "  edges:", ecount(g_ego), "\n")
+cat("components:", components(g_ego)$no, "\n")   # should now be 1
+```
+```{r}
+
+wire_paths_k <- function(g, gsib_names,
+                         k    = 2,       # maximum hop length
+                         mode = "all") { # "all", "out", or "in"
+
+  gsib_vids <- which(V(g)$name %in% gsib_names)
+  pairs     <- combn(gsib_vids, 2, simplify = FALSE)
+
+  keep_nodes <- gsib_vids                    # start with the G-SIBs
+
+  for (p in pairs) {
+    d <- distances(g, v = p[1], to = p[2],
+                   mode = mode, weights = NA)     # ← IGNORE WEIGHTS
+    if (is.finite(d) && d <= k) {
+      sp <- shortest_paths(g,
+                           from    = p[1],
+                           to      = p[2],
+                           mode    = mode,
+                           weights = NA)$vpath[[1]] # ← IGNORE WEIGHTS
+      keep_nodes <- c(keep_nodes, sp)
+    }
+  }
+
+  induced_subgraph(g, vids = unique(keep_nodes))
+}
+
+## --------- run it ----------------------------------------------------------
+g_wire <- wire_paths_k(g_l_s, importantbanks, k = 2)  # or k = 3 if needed
+cat("nodes:", vcount(g_wire),
+    "  edges:", ecount(g_wire),
+    "  components:", components(g_wire)$no, "\n")
+
+
+```
+
+
 
 Preparing network objects for further use (ERGM)
 ```{r}
 net_l_s <- intergraph::asNetwork(g_l_s)
 net_topx <- intergraph::asNetwork(g_topx)
 net_sib <- intergraph::asNetwork(g_sib)
+net_wire <- intergraph::asNetwork(g_wire)
 
 network::set.edge.attribute(net_l_s, "weight", igraph::get.edge.attribute(g_l_s, "weight"))
 
