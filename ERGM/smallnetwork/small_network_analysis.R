@@ -2,8 +2,8 @@
 set.seed(123)
 
 
-summary(fit_wire1)
-mcmc.diagnostics(fit_wire1)  # check trace & autocorr
+summary(fit_wire3)
+mcmc.diagnostics(fit_wire3)  # check trace & autocorr
 
 sims <- simulate(fit_wire0, nsim = 100, output = "stats",
                  statsonly = FALSE)

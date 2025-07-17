@@ -38,15 +38,50 @@ fit_wire0 <- ergm(
 ### 1)  flag the high-activity senders -------------------------
 outdeg <- sna::degree(net_wire, cmode = "outdegree")
 # add a logical (0/1) attribute to the *network* object
-net_wire %v% "big_sender" <- outdeg >= 7    # choose the cut-point you prefer
+net_wire %v% "big_sender" <- outdeg >= 6    # choose the cut-point you prefer
 
 ### 2)  fit ----------------------------------------------------
-fit_wire2 <- ergm(
+
+tm <- system.time({                 # Measures the time it takes to run
+  
+  fit_wire2 <- ergm(
+    net_wire ~ nonzero + sum
+    + greaterthan(threshold = c(400,1000))  # fattens the tail
+    + nodeofactor("big_sender")              # boosts out-degree variance
+    + offset(mutual),                        # forces reciprocity down
+    offset.coef = c(-5),            # large negative penalty on mutual ties
+    
+    response    = "w_scale",
+    reference   = ~Geometric,
+    control     = control.ergm(
+      MCMC.burnin     = 5e5,
+      MCMC.interval   = 1e6,
+      MCMC.samplesize = 6e4,
+      MCMC.return.stats = Inf,
+      parallel        = 4,
+      seed            = 123)
+  )
+  
+})
+
+
+b
+
+###
+outdeg <- sna::degree(net_wire, cmode = "outdegree")
+# add a logical (0/1) attribute to the *network* object
+net_wire %v% "big_sender" <- outdeg >= 4    # choose the cut-point you prefer
+
+### 2)  fit ----------------------------------------------------
+
+tm <- system.time({                 # Measures the time it takes to run it
+
+fit_wire3 <- ergm(
   net_wire ~ nonzero + sum
-  + greaterthan(threshold = c(400, 800, 1200))  # fattens the tail
+  + greaterthan(threshold = c(350,1000))  # fattens the tail
   + nodeofactor("big_sender")              # boosts out-degree variance
   + offset(mutual),                        # forces reciprocity down
-  offset.coef = c(-5),            # large negative penalty on mutual ties
+  offset.coef = c(-4),            # large negative penalty on mutual ties
   
   response    = "w_scale",
   reference   = ~Geometric,
@@ -59,12 +94,7 @@ fit_wire2 <- ergm(
     seed            = 123)
 )
 
-
-
-
-
-
-
+})
 
 
 # Just so I have a minimal model that runs in minutes, it is derived from above to test terms 
