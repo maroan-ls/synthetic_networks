@@ -11,60 +11,58 @@ library(igraph)
 
 ```{r}
 #Number of vertices and edges
-vcount(g_l)
-ecount(g_l)
-gsize(g_l)
+vcount(g_l_s)
+ecount(g_l_s)
+gsize(g_l_s)
 
-count_components(g_l)
-is_connected(g_l)
+count_components(g_l_s)
+is_connected(g_l_s)
 print("Multiedges exist:")
-any_multiple(g_l)
+any_multiple(g_l_s)
 ```
 
 
 ```{r}
-max(degree(g_l))
-min(degree(g_l))
+max(degree(g_l_s))
+min(degree(g_l_s))
 # edge_connectivity(g_l)
 # vertex_connectivity(g_l)
 # cohesion(g_l)
-any_multiple(g_l)
-diameter(g_l, directed = TRUE, weights = NA)
-mean_distance(g_l, directed = TRUE, weights = NA)
-transitivity(g_l, type = "average", weights = NA)
+any_multiple(g_l_s)
+diameter(g_l_s, directed = TRUE, weights = NA)
+mean_distance(g_l_s, directed = TRUE, weights = NA)
+transitivity(g_l_s, type = "average", weights = NA)
 #
-transitivity(igraph::simplify(g_l, edge.attr.comb = list(weight = "sum")), type = "weighted")
+transitivity(igraph::simplify(g_l_s, edge.attr.comb = list(weight = "sum")), type = "weighted")
 #Only works without multiedges
-reciprocity(g_l, ignore.loops = TRUE)
+reciprocity(g_l_s, ignore.loops = TRUE)
 ```
 
 ```{r}
-g_sum <- simplify(g_l, edge.attr.comb = list(weight = "sum"))
-#Number of vertices and edges
-vcount(g_sum)
-ecount(g_sum)
-gsize(g_sum)
-any_multiple(g_sum)
-count_multiple(g_sum)
-any_loop(g_sum)
-transitivity(g_sum, type = "average") # Only handles directed unweighted, or undirected. 
-edge_density(g_sum)
+vcount(g_wire)
+ecount(g_wire)
+gsize(g_wire)
+any_multiple(g_wire)
+count_multiple(g_wire)
+any_loop(g_wire)
+transitivity(g_wire, type = "average") # Only handles directed unweighted, or undirected. 
+edge_density(g_wire)
 ```
 
 ```{r}
 # Directed eccentricities
-ecc_out <- eccentricity(g_l, mode = "out")  
+ecc_out <- eccentricity(g_l_s, mode = "out")  
 # "out" means distance is measured along outward paths 
 # (i.e., from a node to others).
 
-r_out <- radius(g_l, mode = "out")
-d_out <- diameter(g_l_s, directed = TRUE, unconnected = TRUE, weights = NA)
+r_out <- radius(g_l_s, mode = "out")
+d_out <- diameter(g_l_s_s, directed = TRUE, unconnected = TRUE, weights = NA)
 
 cat("Radius (out):", r_out, "\n")
 cat("Diameter (directed):", d_out, "\n")
 ```
 ```{r}
-dist_mat <- distances(g_l_s, mode = "out")  
+dist_mat <- distances(g_l_s_s, mode = "out")  
 # This returns an n x n matrix of shortest path distances
 
 # Flatten and remove Inf (unreachable pairs)
@@ -78,20 +76,20 @@ hist(finite_dists,
 ```
 
 ```{r}
-triads <- triad_census(g_l)
+triads <- triad_census(g_l_s)
 triads
 ```
 ####Checking for small world property
 
 ```{r}
-transitivity(g_l, type = "average", weights = NA)
+transitivity(g_l_s, type = "average", weights = NA)
 mean_distance(g_l_s, directed = TRUE, weights = NA)
 
 ```
 
 
 ```{r}
-mean_distance(g_l, directed=TRUE, weights = NA)
+mean_distance(g_l_s, directed=TRUE, weights = NA)
 (log(3674))/(log(log(3674))) # Approxmiation apl, for ? which kind 
 ```
 
@@ -101,9 +99,9 @@ mean_distance(g_l, directed=TRUE, weights = NA)
 
 
 ```{r}
-in_deg  <- degree(g_l, mode = "in")   # number of incoming edges
-out_deg <- degree(g_l, mode = "out")  # number of outgoing edges
-all_deg <- degree(g_l, mode = "all")  # in + out
+in_deg  <- degree(g_l_s, mode = "in")   # number of incoming edges
+out_deg <- degree(g_l_s, mode = "out")  # number of outgoing edges
+all_deg <- degree(g_l_s, mode = "all")  # in + out
 ```
 
 
@@ -288,21 +286,22 @@ print(data.frame(head(round(sort(out_strength, decreasing = T)/1000000000, 3), n
 
 
 
+
 # Centrality Measures ---------------------------------------
 
 
 ```{r}
-degcent <-   centr_degree(g_l, mode="out", loops = TRUE)
+degcent <-   centr_degree(g_l_s, mode="out", loops = TRUE)
 #degcent
-closecent <- centr_clo(g_l, mode = "out")
+closecent <- centr_clo(g_l_s, mode = "out")
 #closecent
-betwcent <-  centr_betw(g_l, directed=TRUE)
+betwcent <-  centr_betw(g_l_s, directed=TRUE)
 #betwcent
 ```
 
 
 ```{r}
-eig_centrality <- eigen_centrality(g_l, directed = TRUE, weights = NA)
+eig_centrality <- eigen_centrality(g_l_s, directed = TRUE, weights = NA)
 eig_centrality$value
 ```
 ```{r}
@@ -312,20 +311,15 @@ alpha <- 0.9/11
 
 
 ```{r}
-#evcent <-    centr_eigen(g_l, directed=TRUE)
+#evcent <-    centr_eigen(g_l_s, directed=TRUE)
 #evcent should only be used in strongly connected graphs or undirected
-katzcent <-  igraph::alpha_centrality(g_l, alpha=alpha, loops = TRUE, weights = NA)
+katzcent <-  igraph::alpha_centrality(g_l_s, alpha=alpha, loops = TRUE, weights = NA)
 #katzcent#katzcentNULL
 # alpha: 0.2 fast decay = short paths important, 0.9 longer paths important
-prcent <-  page_rank(g_l, directed=TRUE)
+prcent <-  page_rank(g_l_s, directed=TRUE)
 #prcent
 ```
 
-
-```{r}
-g_no_multiedges <- simplify(g_l, remove.multiple = TRUE, remove.loops = FALSE)
-alpha_centrality(g_no_multiedges, alpha = 0.2, loops = FALSE, tol = 1e-7, weights = NA)
-```
 
 
 
@@ -339,12 +333,12 @@ prcent$centralization
 
 ```{r}
 # Weighted degree centrality (in-strength and out-strength)
-in_strength <- strength(g_l, mode = "in", weights = E(g_l)$weight)
-out_strength <- strength(g_l, mode = "out", weights = E(g_l)$weight)
+in_strength <- strength(g_l_s, mode = "in", weights = E(g_l_s)$weight)
+out_strength <- strength(g_l_s, mode = "out", weights = E(g_l_s)$weight)
 
 # Combine results into a data frame
 weighted_degree <- data.frame(
-  Bank = V(g_l)$name,
+  Bank = V(g_l_s)$name,
   In_Strength = in_strength,
   Out_Strength = out_strength
 )
@@ -353,20 +347,20 @@ print(weighted_degree)
 ```
 ```{r}
 # Betweenness centrality (weighted)
-w_betwcent <- betweenness(g_l, directed = TRUE, weights = E(g_l)$weight)
+w_betwcent <- betweenness(g_l_s, directed = TRUE, weights = 1/E(g_l_s)$weight)
 
 # Add to the data frame
 weighted_degree$Betweenness = w_betwcent
 print(weighted_degree)
 ```
 ```{r}
-summary(E(g_l)$weight)
-any(E(g_l)$weight <= 0) 
-min(E(g_l)$weight)
+summary(E(g_l_s)$weight)
+any(E(g_l_s)$weight <= 0) 
+min(E(g_l_s)$weight)
 ```
 ```{r}
 # Calculate Katz centrality (directed, with weights)
-katz_centrality <- eigen_centrality(g_l, directed = TRUE, weights = E(g_l)$weight, options = list(alpha = alpha))$vector
+katz_centrality <- eigen_centrality(g_l_s, directed = TRUE, weights = E(g_l_s)$weight, options = list(alpha = alpha))$vector
 
 # Add to the data frame
 weighted_degree$Katz = katz_centrality
@@ -374,7 +368,7 @@ print(weighted_degree)
 ```
 ```{r}
 # PageRank (weighted)
-pagerank_scores <- page_rank(g_l, directed = TRUE, weights = E(g_l)$weight)$vector
+pagerank_scores <- page_rank(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
 # Add to the data frame
 weighted_degree$PageRank = pagerank_scores
 print(weighted_degree)
@@ -386,7 +380,7 @@ print(weighted_degree)
 ```{r}
 # This might be deleted as it does not make much sense as there is basically only one cluster of weakly connected component
 # Find weakly connected components
-wcc <- components(g_l, mode = "strong")
+wcc <- components(g_l_s, mode = "strong")
 
 # Number of components
 num_components <- wcc$no
@@ -398,15 +392,89 @@ component_sizes <- table(wcc$csize)
 
 ```{r}
 # Degree assortativity
-degree_assort <- assortativity_degree(g_l, directed = TRUE)
+degree_assort <- assortativity_degree(g_l_s, directed = TRUE)
 
 
 # Weighted assortativity
-weighted_assort <- assortativity(g_l, types1 = strength(g_l, mode = "out", weights = E(g_l)$weight), 
-                                    types2 = strength(g_l, mode = "in", weights = E(g_l)$weight))
+weighted_assort <- assortativity(g_l_s, types1 = strength(g_l_s, mode = "out", weights = E(g_l_s)$weight), 
+                                    types2 = strength(g_l_s, mode = "in", weights = E(g_l_s)$weight))
 
 cat("Degree assortativity coefficient:", degree_assort, "\n")
 cat("Weighted assortativity coefficient:", weighted_assort, "\n")
+```
+
+
+```{r}
+sum(strength(g_wire, mode = "out", weights = E(g_wire)$weight))/1e9
+ sum(strength(g_l_s, mode = "out", weights = E(g_l_s)$weight))/1e9
+```
+```{r}
+
+
+## 2.  Weighted distance metrics
+diam_invW  <- diameter(g_l_s, directed = TRUE, weights = 1 / E(g_l_s)$weight)
+dist_mat   <- distances(g_l_s, weights = 1 / E(g_l_s)$weight, mode = "out")
+apl_invW   <- mean(dist_mat[is.finite(dist_mat)])
+
+## 3.  Weighted betweenness (1/w)
+bet        <- betweenness(g_l_s, directed = TRUE, weights = 1 / E(g_l_s)$weight)
+avg_bet_invW <- mean(bet)
+
+## 4.  Weighted eigenvector & PageRank
+eig_w      <- eigen_centrality(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
+avg_eig_w  <- mean(eig_w)
+
+pr_w       <- page_rank(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
+avg_pr_w   <- mean(pr_w)
+
+## 2.  Weighted distance metrics
+diam_invW  <- diameter(g_wire, directed = TRUE, weights = 1 / E(g_wire)$weight)
+dist_mat   <- distances(g_wire, weights = 1 / E(g_wire)$weight, mode = "out")
+apl_invW   <- mean(dist_mat[is.finite(dist_mat)])
+
+## 3.  Weighted betweenness (1/w)
+bet        <- betweenness(g_wire, directed = TRUE, weights = 1 / E(g_wire)$weight)
+avg_bet_invW <- mean(bet)
+
+## 4.  Weighted eigenvector & PageRank
+eig_w      <- eigen_centrality(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+avg_eig_w  <- mean(eig_w)
+
+pr_w       <- page_rank(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+avg_pr_w   <- mean(pr_w)
+
+
+cat("diam_invW:", diam_invW, "\n")
+cat("apl_invW:", apl_invW, "\n")
+cat("avg_bet_invW:", avg_bet_invW, "\n")
+cat("avg_eig_w:", avg_eig_w, "\n")
+cat("avg_pr_w:", avg_pr_w, "\n")
+```
+```{r}
+## 1. Inverse-weight edge length for betweenness
+
+## 2. Compute centralities (vectors)
+cent <- tibble(
+  bank      = V(g_wire)$name,
+  degree    = degree(g_wire, mode = "all"),
+  strength  = strength(g_wire, weights = E(g_wire)$weight),
+  bet_1w    = betweenness(g_wire, directed = TRUE, weights = 1/E(g_wire)$len),
+  eig_w     = eigen_centrality(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector,
+  pr_w      = page_rank(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+)
+
+## 3. Gather, rank, slice Top-5
+top5 <- cent %>%
+  pivot_longer(-bank, names_to = "metric", values_to = "value") %>%
+  group_by(metric) %>%
+  arrange(desc(value)) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+## 4. Display: one table per metric
+top5 %>%
+  arrange(metric, desc(value)) %>%
+  print(n = Inf)
 ```
 
 

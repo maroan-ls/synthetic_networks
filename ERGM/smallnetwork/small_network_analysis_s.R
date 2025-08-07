@@ -3,7 +3,7 @@ library(ergm.count)   # valued terms
 set.seed(123)
 
 # your fitted model object
-fit <- fit_wire3         # change to your object name
+fit <- fit_wire2         # change to your object name
 obs <- fit$network        # the observed network
 w_obs <- as.numeric(obs %e% "w_scale")
 

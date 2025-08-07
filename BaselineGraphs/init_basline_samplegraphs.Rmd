@@ -11,39 +11,52 @@ set.seed(123)
 
 ```{r}
 g_er <- sample_gnm(vcount(g_l_s), ecount(g_l_s), directed = TRUE)
-g_er_sub <- sample_gnm(vcount(sub_g_sf), ecount(sub_g_sf), directed = TRUE)
+g_er_sub <- sample_gnm(vcount(g_wire), ecount(g_wire), directed = TRUE)
 transitivity(g_er, type = "average")
 mean_distance(g_er, directed = TRUE)
+edge_density(g_er_sub)
+mean(degree(g_er))
 ```
 
 ```{r}
 swg <- sample_smallworld(dim = 1, size = vcount(g_l_s), nei = 4, p = 0.5, loops = FALSE, multiple = FALSE)
-swg_sub <- sample_smallworld(dim = 1, size = vcount(sub_g_sf), nei = 4, p = 0.5, loops = FALSE, multiple = FALSE)
-count_components(swg)
-is_connected(swg)
+swg_sub <- sample_smallworld(dim = 1, size = vcount(g_wire), nei = 6, p = 0.5, loops = FALSE, multiple = FALSE)
+mean(degree(swg, mode = "all"))
 transitivity(swg, type = "average")
 mean_distance(swg, directed = TRUE)
 mean_distance(swg_sub, directed = TRUE)
 ecount(swg)
 ecount(swg_sub)
-
+edge_density(swg_sub)
+```
+```{r}
+swg <- as_directed(sample_smallworld(1,size = vcount(g_l_s), 
+                                     nei = round(ecount(g_l_s) / vcount(g_l_s)),p = 0.5),
+                   mode = "random")
+swg_sub <- as_directed(sample_smallworld(1, size = vcount(g_wire),
+                                         nei = round(ecount(g_wire)/vcount(g_wire)), p = 0.5),
+                       mode = "random")
 ```
 
 
 ```{r}
 g_pa <- sample_pa(n=vcount(g_l_s), m=4, directed=TRUE, algorithm = c("bag"))
-g_pa_sub <- sample_pa(n=vcount(sub_g_sf), m=4, directed=TRUE, algorithm = c("bag"))
+g_pa_sub <- sample_pa(n=vcount(g_wire), m=7, directed=TRUE, algorithm = c("bag"))
+mean(degree(g_pa_sub, mode = "in"))
 count_components(g_pa)
 transitivity(g_pa, type = "average")
 mean_distance(g_pa, directed = TRUE, weights = NA)
-ecount(g_pa)
+ecount(g_pa_sub)
+edge_density(g_pa_sub)
 ```
+
 
 ```{r}
 # Degree distribution
 dd_g_bg <- degree_distribution(g_er, cumulative = FALSE)
 cumdd_g_bg <- degree_distribution(g_er, cumulative = TRUE)
 ```
+
 
 
 ```{r}

@@ -55,19 +55,19 @@ compute_graph_metrics <- function(g) {
     nodes = nodes,
     edges = edges,
     components = components,
-    density_binary         = dens_bin,
-    diameter_binary        = diam_bin,
-    diameter_weighted      = diam_wt,
-    mean_distance_binary   = md_bin,
-    mean_distance_weighted = md_wt,
-    transitivity_binary    = clustering_coeff,
-    avg_degree_binary      = avg_deg,
-    avg_degree_in_binary   = avg_in_deg,
-    avg_degree_out_binary  = avg_out_deg,
-    avg_total_strenght     = avg_str,
-    avg_borrowed_total     = avg_in_str,
-    degree_assortativity   = degree_assort,
-    degree_assortativity_weighted = weighted_assort
+    density         = dens_bin,
+    diameter        = diam_bin,
+    #diameter_weighted      = diam_wt,
+    mean_distance   = md_bin,
+    #mean_distance_weighted = md_wt,
+    transitivity    = clustering_coeff,
+    avg_degree      = avg_deg,
+    avg_degree_in_out   = avg_in_deg,
+    #avg_degree_out_binary  = avg_out_deg,
+    #avg_total_strenght     = avg_str,
+    #avg_borrowed_total     = avg_in_str,
+    degree_assortativity   = degree_assort
+    #degree_assortativity_weighted = weighted_assort
     
   )
   
@@ -78,8 +78,8 @@ compute_graph_metrics <- function(g) {
 
 
 ```{r}
-graphs <- list(Real_simplified = g_l_s, ER = g_er, SW = swg, BA = g_pa, 
-               Real_sub = sub_g_sf, ER_sub = g_er_sub, SW_sub = swg_sub, BA_sub = g_pa_sub)
+graphs <- list(Real = g_wire, ER = g_er, SW = swg, BA = g_pa, 
+               GSIBW2 = g_wire, ER_sub = g_er_sub, SW_sub = swg_sub, BA_sub = g_pa_sub)
 ```
 
 
@@ -96,8 +96,35 @@ metrics_matrix <- do.call(cbind, metrics_list)
 # Convert the matrix to a data frame (if desired)
 metrics_df <- as.data.frame(metrics_matrix)
 row_names <- rownames(metrics_df)
+metrics_df['degree_assortativity','BA'] <- assortativity_degree(as_undirected(g_pa))
+metrics_df['degree_assortativity','BA_sub'] <- assortativity_degree(as_undirected(g_pa_sub))
+
+
 metrics_df <- as.data.frame(lapply(metrics_df, function(x) formatC(x, format = "f", digits = 4, drop0trailing = TRUE)))
 rownames(metrics_df) <- row_names
 
+
+
+```
+
+```{r}
+library(ggplot2)
+
+count_edges_gls <- ecdf(E(g_l_s)$weight)
+gls_weight  <- data.frame(w = sort(unique(E(g_l_s)$weight)),
+                  F = 1 - count_edges_gls(sort(unique(E(g_l_s)$weight))))
+ggplot(gls_weight, aes(w, F)) +
+  geom_step() +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Exposure size (USD)", y = "P(W ≥ w)")
+
+
+count_edges_gls <- ecdf(E(g_wire)$weight)
+gls_weight  <- data.frame(w = sort(unique(E(g_wire)$weight)),
+                  F = 1 - count_edges_gls(sort(unique(E(g_wire)$weight))))
+ggplot(gls_weight, aes(w, F)) +
+  geom_step() +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Exposure size (USD)", y = "P(W ≥ w)")
 ```
 

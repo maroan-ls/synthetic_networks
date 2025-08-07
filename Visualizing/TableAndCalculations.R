@@ -1,11 +1,11 @@
 # Other small measures calculated that are mentioned
-
+# Calculating Loan exposure
 all.equal(sum(weighted_degree$Out_Strength), sum(out_strength))
 max(weighted_degree$Out_Strength)/sum(weighted_degree$Out_Strength)
 sum(head(sort(weighted_degree$Out_Strength,decreasing=T), n=10))/sum(weighted_degree$Out_Strength)
 
-
-lenght(out_deg == 0)/vcount()
+sum(weighted_degree$Out_Strength)/1e9
+length(out_deg == 0)/vcount()
 
 
 
