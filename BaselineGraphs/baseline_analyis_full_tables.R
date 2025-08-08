@@ -66,8 +66,8 @@ compute_graph_metrics <- function(g) {
   if (!is.null(E(g)$weight)) {
     wt <- E(g)$weight
     
-    diam_wt <- diameter(g, directed = TRUE, weights = wt)
-    apl_wt  <- mean_distance(g, directed = TRUE, weights = wt)
+    diam_wt <- diameter(g, directed = TRUE, weights = 1/wt)
+    apl_wt  <- mean_distance(g, directed = TRUE, weights = 1/wt)
     
     str_all <- strength(g, mode = "all", weights = wt)
     max_str <- max(str_all)
@@ -160,7 +160,7 @@ compute_graph_metrics <- function(g) {
 # ----------------------------------------------------------------------------
 
 graphs <- list(
-  Real    = g_l_s,
+  Glcc    = g_l_s,
   ER      = g_er,
   SW      = swg,
   BA      = g_pa,

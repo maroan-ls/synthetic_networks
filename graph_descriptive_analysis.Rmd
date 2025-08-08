@@ -278,7 +278,8 @@ head(dSortedg, n = 10)
 out_strength <- strength(g_l_s, mode = "out", weights = E(g_l_s)$weight)
 
 print(data.frame(head(round(sort(out_strength, decreasing = T)/1000000000, 3), n = 10)))
-
+#Percentage of Top 10 exposure to total expsoure
+sum(head(round(sort(out_strength, decreasing = T)/1000000000, 3), n = 10))/sum(round(out_strength/1000000000,3))
 
 ```
 
@@ -327,7 +328,7 @@ prcent <-  page_rank(g_l_s, directed=TRUE)
 degcent$centralization
 closecent$centralization
 betwcent$centralization
-katzcent$centralization
+#katzcent$centralization
 prcent$centralization
 ```
 

@@ -7,7 +7,14 @@ sum(head(sort(weighted_degree$Out_Strength,decreasing=T), n=10))/sum(weighted_de
 sum(weighted_degree$Out_Strength)/1e9
 length(out_deg == 0)/vcount()
 
+sum(out_strength[importantbanks])/sum(out_strength)
 
+mean(betweenness(g, directed = TRUE, weights = 1/wt))
+sum(betw_1w[gsib]) / sum(betw_1w)
+
+
+# Calculating strenght of GSIBs
+out_Strength[importantbanks]
 
 
 ## For creating Result Table
