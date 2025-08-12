@@ -21,10 +21,10 @@ compute_centrality_stats <- function(net) {
   # If higher weight means a stronger connection, we often want to use the inverse
   # for centrality measures based on shortest paths.
   # (Make sure there are no zero weights; if there are, you might want to add a small constant.)
-  E(g)$inv_weight <- 1 / E(g)$weight
+  E(g)$inv_weight <- 1 / E(g)$w_scale
   
-  used_weight <- E(g)$weight
-  #used_weight <- E(g)$inv_weight
+  #used_weight <- E(g)$w_scale
+  used_weight <- E(g)$inv_weight
   
   # Compute betweenness centrality (using the inverted weight)
   # This tells us which nodes act as bridges in the flow of information/loans.
@@ -70,7 +70,7 @@ compute_centrality_stats <- function(net) {
 
 ```{r}
 # Compute centrality statistics for the observed network
-obs_cent_stats <- compute_centrality_stats(net)
+obs_cent_stats <- compute_centrality_stats(net_wire)
 
 # Print observed summary statistics
 cat("Observed Centrality Summary:\n")
@@ -121,7 +121,7 @@ obs_values <- c(
 # Loop through each centrality statistic to plot
 for (i in seq_along(stat_names)) {
   hist(sim_cent_stats_df[[stat_names[i]]],
-       main = paste("Simulated", stat_names[i]),
+       main = paste("", stat_names[i]),
        xlab = stat_names[i],
        col = "skyblue", border = "white")
   abline(v = obs_values[i], col = "red", lwd = 2)

@@ -72,3 +72,7 @@ lines(q_obs, med, lwd = 2)
 points(q_obs, q_obs, pch = 19, cex = .4)
 abline(0, 1, lty = 2)
 
+
+logLik(fit_wire2, add = TRUE)
+
+mcmc.diagnostics(fit_wire2, which = "plots")

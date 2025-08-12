@@ -72,3 +72,29 @@ print(round(c(share_exp_total = share_exp_total,
               GSIBs_top20_bw  = gsibs_in_top20,
               GSIBs_top50_bw  = gsibs_in_top50,
               G_s_core        = G_s_core), 4))
+
+
+
+# Strength unbalance 
+sprintf("Gini_k all = %.4f", ineq::Gini(strength(g_wire, mode = "all"))) 
+sprintf("Gini_k in = %.4f", ineq::Gini(strength(g_wire, mode = "in"))) 
+sprintf("Gini_k out = %.4f", ineq::Gini(strength(g_wire, mode = "out"))) 
+
+# Strength unbalance 
+sprintf("Gini_k all = %.4f", ineq::Gini(strength(g_wire, mode = "all", weights = E(g_wire)$weight))) 
+sprintf("Gini_k in = %.4f", ineq::Gini(strength(g_wire, mode = "in", weights = E(g_wire)$weight)))
+sprintf("Gini_k out = %.4f", ineq::Gini(strength(g_wire, mode = "out", weights = E(g_wire)$weight))) 
+
+
+
+mean(betweenness(g_wire, directed = TRUE, weights = 1/E(g_wire)$weight, normalized = TRUE))
+mean(betweenness(g_l_s, directed = TRUE, weights = 1/(E(g_l_s)$weight/1e6), normalized = TRUE))
+
+mean(betweenness(g_wire, directed = TRUE, weights = NA, normalized = TRUE))
+mean(betweenness(g_l_s, directed = TRUE, weights = NA, normalized = TRUE))
+
+mean_distance(g_wire, directed = TRUE, weights = NA)/(vcount(g_wire)-1)
+mean_distance(g_l_s, directed = TRUE, weights = NA)/(vcount(g_wire)-1)
+
+assortativity_degree(g_wire, directed = TRUE)
+

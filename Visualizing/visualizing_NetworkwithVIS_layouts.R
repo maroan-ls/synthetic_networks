@@ -30,6 +30,3 @@ visIgraphLayout(layout = "layout_with_sugiyama") %>%  # ultra-fast
   visNodes(color = list(background = "#de2d26"))    %>%
   visOptions(highlightNearest = TRUE)
 
-vis$x$nodes$y <- vis$x$nodes$y * 0.4   # 0.3-0.5 ??? closer / farther
-
-vis   # display

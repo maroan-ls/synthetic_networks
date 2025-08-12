@@ -34,3 +34,8 @@ cat(sprintf("Tail exponent alpha = %.2f (xmin = %d, p = %.3f)\n",
 sprintf("Gini_k all = %.4f", ineq::Gini(strength(g_l_s, mode = "all"))) 
 sprintf("Gini_k in = %.4f", ineq::Gini(strength(g_l_s, mode = "in"))) 
 sprintf("Gini_k out = %.4f", ineq::Gini(strength(g_l_s, mode = "out"))) 
+
+# Strength unbalance 
+sprintf("Gini_k all = %.4f", ineq::Gini(strength(g_l_s, mode = "all", weights = E(g_l_s)$weight))) 
+sprintf("Gini_k in = %.4f", ineq::Gini(strength(g_l_s, mode = "in", weights = E(g_l_s)$weight))) 
+sprintf("Gini_k out = %.4f", ineq::Gini(strength(g_l_s, mode = "out", weights = E(g_l_s)$weight))) 

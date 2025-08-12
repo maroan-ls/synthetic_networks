@@ -27,7 +27,7 @@ er_ref <- c(
 #  Helper functions
 # ------------------------------------------------------------
 # ------------------------------------------------------------------
-#  One function = one graph   → returns a *named* numeric vector
+#  One function = one graph   a returns a *named* numeric vector
 # ------------------------------------------------------------------
 compute_graph_metrics_xtra <- function(g,
                                        directed   = TRUE,

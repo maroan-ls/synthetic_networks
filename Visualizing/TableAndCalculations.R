@@ -25,7 +25,7 @@ out_Strength[importantbanks]
 library(stargazer)
 
 # Export ERGM model results as LaTeX table
-stargazer(f14_summary, type = "latex", title = "ERGM Results", out = "ergm_results.tex")
+stargazer(fit_wire2, type = "latex", title = "ERGM Results", out = "ergm_results.tex")
 
 
 
@@ -34,13 +34,13 @@ f14_summary
 
 
 library(xtable)
-print(xtable(f14_summary$coefficients), type = "latex", file = "ergm_table.tex")
+print(xtable(fit_wire2$coefficients), type = "latex", file = "ergm_table.tex")
 
 
 install.packages("texreg")
 library(texreg)
 # Save ERGM model output as a LaTeX table
-texreg(fit_weight14, file = "ergm_results.tex", 
+texreg(fit_wire2, file = "ergm_results.tex", 
        caption = "ERGM Model Results",
        label = "tab:ergm",
        digits = 3,

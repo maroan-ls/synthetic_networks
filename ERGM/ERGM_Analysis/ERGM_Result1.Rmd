@@ -11,29 +11,24 @@ g_f_sim <- asIgraph(f13_sim2)
 ```
 
 
-```{r}
-#visNetwork::visIgraph(g_f_sim)
-```
-
-
-
 
 ```{r}
 set.seed(123)
 numSims <- 500
-f14_sims <- simulate(fit_weight14, nsim = numSims, output = "network", seed = 123)
+#f14_sims <- simulate(fit_weight14, nsim = numSims, output = "network", seed = 123)
 ```
 
 ```{r}
-sim_networks <- f14_sims
+#sim_networks <- f14_sims
+sim_networks <- sims
 ```
 
 ```{r}
 # For illustration, compute a summary statistic – say, the total sum of edge weights
-obs_stat <- sum(get.edge.attribute(net, "weight"))
+obs_stat <- sum(get.edge.attribute(net_wire, "w_scale"))
 
 sim_stats <- sapply(sim_networks, function(net) {
-  sum(get.edge.attribute(net, "weight"))
+  sum(get.edge.attribute(net, "w_scale"))
 })
 
 # Plot the distribution of the simulated statistic
@@ -45,8 +40,8 @@ legend("topright", legend = "Observed", col = "red", lwd = 2)
 
 ```{r}
 # Compare edge weight distributions
-real_weights <- as.edgelist(net, attrname = "weight")[, 3]
-sim_weights <- unlist(lapply(sim_networks, function(net) as.edgelist(net, attrname = "weight")[, 3]))
+real_weights <- as.edgelist(net_wire, attrname = "w_scale")[, 3]
+sim_weights <- unlist(lapply(sim_networks, function(net) as.edgelist(net, attrname = "w_scale")[, 3]))
 
 plot(density(sim_weights), col = "blue", main = "Edge Weight Distribution")
 lines(density(real_weights), col = "red")
@@ -55,8 +50,8 @@ legend("topright", legend = c("Simulated", "Real"), fill = c("blue", "red"))
 
 ```{r}
 # Convert to matrix
-real_mat <- as.matrix(net, attrname = "weight")
-sim_mat <- as.matrix(sim_networks[[1]], attrname = "weight")
+real_mat <- as.matrix(net_wire, attrname = "w_scale")
+sim_mat <- as.matrix(sim_networks[[1]], attrname = "w_scale")
 
 heatmap(real_mat, Rowv = NA, Colv = NA, main = "Real Network Weights")
 heatmap(sim_mat, Rowv = NA, Colv = NA, main = "Simulated Network Weights")
@@ -64,7 +59,7 @@ heatmap(sim_mat, Rowv = NA, Colv = NA, main = "Simulated Network Weights")
 
 ```{r}
 # Strength centrality (sum of weights)
-real_strength <- sna::degree(as.matrix(net), gmode = "digraph", ignore.eval = FALSE)
+real_strength <- sna::degree(as.matrix(net_wire), gmode = "digraph", ignore.eval = FALSE)
 sim_strength <- sna::degree(as.matrix(sim_networks[[1]]), gmode = "digraph", ignore.eval = FALSE)
 
 boxplot(list(Real = real_strength, Simulated = sim_strength), main = "Strength Centrality")
@@ -73,14 +68,14 @@ boxplot(list(Real = real_strength, Simulated = sim_strength), main = "Strength C
 ```{r}
 
 # Plot a histogram of edge weights
-hist(network::get.edge.attribute(net, "weight"), breaks = 30,
+hist(network::get.edge.attribute(net_wire, "w_scale"), breaks = 30,
      main = "Histogram of Edge Weights",
      xlab = "Edge Weight",
      col = "skyblue", border = "white")
 
 # Add a vertical line for the mean weight
-abline(v = mean(network::get.edge.attribute(net, "weight")), col = "red", lwd = 2)
-legend("topright", legend = paste("Mean =", round(mean(network::get.edge.attribute(net, "weight")), 0)),
+abline(v = mean(network::get.edge.attribute(net_wire, "w_scale")), col = "red", lwd = 2)
+legend("topright", legend = paste("Mean =", round(mean(network::get.edge.attribute(net_wire, "w_scale")), 0)),
        col = "red", lwd = 2)
 ```
 
@@ -99,7 +94,7 @@ abline(v = mean(net_densities), col = "blue", lwd = 3, lty = 1)
 # Function to compute edge-level statistics for a given network object
 compute_edge_stats <- function(net) {
   # Extract edge weights
-  ew <- network::get.edge.attribute(net, "weight")
+  ew <- network::get.edge.attribute(net, "w_scale")
   
   # Basic summaries
   edge_sum    <- sum(ew)
@@ -134,7 +129,7 @@ compute_edge_stats <- function(net) {
 
 ```{r}
 # Compute the edge-level statistics for the observed network
-obs_stats <- compute_edge_stats(net)
+obs_stats <- compute_edge_stats(net_wire)
 
 # Print observed statistics
 print("Observed Edge-Level Statistics:")
@@ -176,7 +171,7 @@ obs_values <- c(obs_stats$sum, obs_stats$mean, obs_stats$sd,
 # Loop through each statistic to plot its simulated distribution
 for (i in seq_along(stat_names)) {
   hist(sim_stats_df[[stat_names[i]]],
-       main = paste("Simulated", stat_names[i]),
+       main = paste("", stat_names[i]),
        xlab = stat_names[i],
        col = "skyblue", border = "white")
   # Overlay the observed value as a red vertical line
@@ -208,7 +203,7 @@ compute_node_stats_efficient <- function(net) {
   
   # Extract edges (sender -> receiver) and their weights
   edges <- network::as.edgelist(net)  # Returns a 2-column matrix: [sender, receiver]
-  weights <- network::get.edge.attribute(net, "weight")  # Extracts weight attribute
+  weights <- network::get.edge.attribute(net, "w_scale")  # Extracts weight attribute
   
   # Loop through edges (memory-efficient)
   for (e in seq_along(weights)) {
@@ -245,7 +240,7 @@ compute_node_stats_efficient <- function(net) {
 
 ```{r}
 # Compute node-level statistics for the observed network
-obs_node_stats <- compute_node_stats_efficient(net)
+obs_node_stats <- compute_node_stats_efficient(net_wire)
 
 # Print out the summary statistics
 cat("Observed Node-Level Summary Statistics:\n")
@@ -288,13 +283,13 @@ obs_values <- c(
   obs_node_stats$summary$median_in_strength,
   obs_node_stats$summary$median_out_strength,
   obs_node_stats$summary$mean_binary_in_degree,
-  obs_node_stats$summary$mean_binary_out_degree
+  obs_node_stats$summary$mean_binary_out_degreeSS
 )
 
 # Loop through each statistic to plot its simulated distribution
 for (i in seq_along(stat_names)) {
   hist(sim_node_stats_df[[stat_names[i]]],
-       main = paste("Simulated", stat_names[i]),
+       main = paste("", stat_names[i]),
        xlab = stat_names[i],
        col = "skyblue", border = "white")
   abline(v = obs_values[i], col = "red", lwd = 2)
