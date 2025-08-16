@@ -18,7 +18,9 @@ Output:
 
 ```{r include=FALSE}
 #Install and Load required packages
-if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
+if (!require('here')) install.packages('here'); library('here')
+
+yif (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 if (!require('readxl')) install.packages('readxl'); library('readxl')
 if (!require('stringr')) install.packages('stringr'); library('stringr')
 if (!require('purrr')) install.packages('purrr'); library('purrr')
@@ -28,6 +30,7 @@ if (!require('intergraph')) install.packages('intergraph'); library('intergraph'
 if (!require('ggraph')) install.packages('ggraph'); library('ggraph')
 if (!require('visNetwork')) install.packages('visNetwork'); library('visNetwork')
 if (!require('igraph')) install.packages('igraph'); library('igraph')
+
 ```
 
 Read and process data
@@ -184,7 +187,7 @@ importantbanks <- c(
   'SMBC',
   'TORONTO DOMINION BANK',
   'WELLS FARGO'
-)c
+)
 g_sib <- induced_subgraph(g_l_s, vids = importantbanks) 
 ```
 
