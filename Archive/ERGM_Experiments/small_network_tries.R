@@ -75,25 +75,25 @@ net_wire %v% "big_sender" <- outdeg >= 4    # choose the cut-point you prefer
 ### 2)  fit ----------------------------------------------------
 
 tm <- system.time({                 # Measures the time it takes to run it
-
-fit_wire3 <- ergm(
-  net_wire ~ nonzero + sum
-  + greaterthan(threshold = c(350,1000))  # fattens the tail
-  + nodeofactor("big_sender")              # boosts out-degree variance
-  + offset(mutual),                        # forces reciprocity down
-  offset.coef = c(-4),            # large negative penalty on mutual ties
   
-  response    = "w_scale",
-  reference   = ~Geometric,
-  control     = control.ergm(
-    MCMC.burnin     = 5e5,
-    MCMC.interval   = 1e6,
-    MCMC.samplesize = 6e4,
-    MCMC.return.stats = Inf,
-    parallel        = 4,
-    seed            = 123)
-)
-
+  fit_wire3 <- ergm(
+    net_wire ~ nonzero + sum
+    + greaterthan(threshold = c(350,1000))  # fattens the tail
+    + nodeofactor("big_sender")              # boosts out-degree variance
+    + offset(mutual),                        # forces reciprocity down
+    offset.coef = c(-4),            # large negative penalty on mutual ties
+    
+    response    = "w_scale",
+    reference   = ~Geometric,
+    control     = control.ergm(
+      MCMC.burnin     = 5e5,
+      MCMC.interval   = 1e6,
+      MCMC.samplesize = 6e4,
+      MCMC.return.stats = Inf,
+      parallel        = 4,
+      seed            = 123)
+  )
+  
 })
 
 

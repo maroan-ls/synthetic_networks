@@ -1,0 +1,493 @@
+# Source Rmd: graph_descriptive_analysis.Rmd
+# Generated: 2025-08-16 08:00
+# Purpose: converted from Rmd for pipeline/audit use
+
+suppressPackageStartupMessages({ library(here) })
+set.seed(123)
+
+#' ---
+#' title: "Deskriptive Analysis of the Network"
+#' output: html_notebook
+#' ---
+## -----------------------------------------------------------------------------------------------------------------------------------------
+library(igraph)
+
+#' 
+#' 
+#' # Descriptive Analysis ---------------------------------------
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#Number of vertices and edges
+vcount(g_l_s)
+ecount(g_l_s)
+gsize(g_l_s)
+
+count_components(g_l_s)
+is_connected(g_l_s)
+print("Multiedges exist:")
+any_multiple(g_l_s)
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+max(degree(g_l_s))
+min(degree(g_l_s))
+# edge_connectivity(g_l)
+# vertex_connectivity(g_l)
+# cohesion(g_l)
+any_multiple(g_l_s)
+diameter(g_l_s, directed = TRUE, weights = NA)
+mean_distance(g_l_s, directed = TRUE, weights = NA)
+transitivity(g_l_s, type = "average", weights = NA)
+#
+transitivity(igraph::simplify(g_l_s, edge.attr.comb = list(weight = "sum")), type = "weighted")
+#Only works without multiedges
+reciprocity(g_l_s, ignore.loops = TRUE)
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+vcount(g_wire)
+ecount(g_wire)
+gsize(g_wire)
+any_multiple(g_wire)
+count_multiple(g_wire)
+any_loop(g_wire)
+transitivity(g_wire, type = "average") # Only handles directed unweighted, or undirected. 
+edge_density(g_wire)
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Directed eccentricities
+ecc_out <- eccentricity(g_l_s, mode = "out")  
+# "out" means distance is measured along outward paths 
+# (i.e., from a node to others).
+
+r_out <- radius(g_l_s, mode = "out")
+d_out <- diameter(g_l_s_s, directed = TRUE, unconnected = TRUE, weights = NA)
+
+cat("Radius (out):", r_out, "\n")
+cat("Diameter (directed):", d_out, "\n")
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+dist_mat <- distances(g_l_s_s, mode = "out")  
+# This returns an n x n matrix of shortest path distances
+
+# Flatten and remove Inf (unreachable pairs)
+finite_dists <- dist_mat[is.finite(dist_mat)] 
+
+hist(finite_dists, 
+     breaks = 50,
+     main = "Shortest Path Length Distribution",
+     xlab = "Path length",
+     col = "lightblue")
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+triads <- triad_census(g_l_s)
+triads
+
+#' ####Checking for small world property
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+transitivity(g_l_s, type = "average", weights = NA)
+mean_distance(g_l_s, directed = TRUE, weights = NA)
+
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+mean_distance(g_l_s, directed=TRUE, weights = NA)
+(log(3674))/(log(log(3674))) # Approxmiation apl, for ? which kind 
+
+#' 
+#' 
+#' 
+#' # Degree Distribution ----------------------------------------
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+in_deg  <- degree(g_l_s, mode = "in")   # number of incoming edges
+out_deg <- degree(g_l_s, mode = "out")  # number of outgoing edges
+all_deg <- degree(g_l_s, mode = "all")  # in + out
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+avg_in  <- mean(in_deg)
+med_in  <- median(in_deg)
+
+avg_out <- mean(out_deg)
+med_out <- median(out_deg)
+
+avg_all <- mean(all_deg)
+med_all <- median(all_deg)
+
+avg_all_s <- mean(all_deg_s)
+med_all_s <- median(all_deg_s)
+
+cat("Average in-degree:", avg_in, "Median in-degree:", med_in, "\n")
+cat("Average out-degree:", avg_out, "Median out-degree:", med_out, "\n")
+cat("Average total degree:", avg_all, "Median total degree:", med_all, "\n")
+cat("Average total degree:", avg_all_s, "Median total degree:", med_all_s, "\n")
+
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+in_deg  <- degree(g_l_s, mode = "in")   # number of incoming edges
+out_deg <- degree(g_l_s, mode = "out")  # number of outgoing edges
+all_deg <- degree(g_l_s, mode = "all")  # in + out
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+avg_in  <- mean(in_deg)
+med_in  <- median(in_deg)
+
+avg_out <- mean(out_deg)
+med_out <- median(out_deg)
+
+avg_all <- mean(all_deg)
+med_all <- median(all_deg)
+
+cat("Average in-degree:", avg_in, "Median in-degree:", med_in, "\n")
+cat("Average out-degree:", avg_out, "Median out-degree:", med_out, "\n")
+cat("Average total degree:", avg_all, "Median total degree:", med_all, "\n")
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Count nodes based on their degree characteristics
+only_out <- sum(in_deg == 0 & out_deg > 0)   # Nodes with only out-degree
+only_in <- sum(out_deg == 0 & in_deg > 0)    # Nodes with only in-degree
+both <- sum(in_deg > 0 & out_deg > 0)        # Nodes with both in-degree and out-degree
+
+# Print results
+cat("Nodes with only out-degree:", only_out, "\n")
+cat("Nodes with only in-degree:", only_in, "\n")
+cat("Nodes with both in-degree and out-degree:", both, "\n")
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Degree distribution
+dd_g <- degree_distribution(g_l_s, cumulative = FALSE)
+cumdd_g <- degree_distribution(g_l_s, cumulative = TRUE)
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+plot(dd_g, type="o", col="blue", xaxt="n", xlab="Degree", ylab="Relative Frequency")
+axis(1, at=NULL, labels=TRUE)
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+plot(cumdd_g, type="o", col="blue", xaxt="n", xlab="Degree", ylab="Cummulative Frequency")
+axis(1, at=NULL, labels=TRUE)
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# 2. Plot separate histograms (base R)
+par(mfrow=c(1,2))  # 2 plots side-by-side for convenience
+
+plot(dd_g, type="s", col="blue", xaxt="n", xlab="Degree", ylab="Relative Frequency",
+     main = "Degree Distribution")
+axis(1, at=NULL, labels=TRUE)
+plot(cumdd_g, type="s", col="blue", xaxt="n", xlab="Degree", ylab="Cumulative Frequency",
+     main = "Cumulative Degree Distribution")
+axis(1, at=NULL, labels=TRUE)
+
+
+#' 
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# 2. Plot separate histograms (base R)
+par(mfrow=c(1,2))  # 2 plots side-by-side for convenience
+
+hist(in_deg,
+     breaks = seq(min(in_deg), max(in_deg), by = 1),
+     main = "In-degree Distribution",
+     xlab = "In-degree",
+     col = "lightblue",
+     border = "white")
+
+hist(out_deg,
+     breaks = seq(min(out_deg), max(out_deg), by = 1),
+     main = "Out-degree Distribution",
+     xlab = "Out-degree",
+     col = "black",
+     border = "white")
+
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+plot(
+  in_deg, out_deg,
+  xlab = "In-degree",
+  ylab = "Out-degree",
+  main = "In-degree vs. Out-degree"
+)
+
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+par(mfrow = c(1, 3))  # 3 plots side by side
+
+hist(in_deg,
+     main = "In-degree Distribution",
+     xlab = "In-degree",
+     col = "lightblue",
+     breaks = 50)
+
+hist(out_deg,
+     main = "Out-degree Distribution",
+     xlab = "Out-degree",
+     col = "lightgreen",
+     breaks = 50)
+
+hist(all_deg,
+     main = "Total Degree Distribution",
+     xlab = "Total degree (in+out)",
+     col = "lightgray",
+     breaks = 50)
+
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+deg_counts <- table(out_deg)
+plot(
+  as.numeric(names(deg_counts)),  # x-axis: degree values
+  as.numeric(deg_counts),         # y-axis: counts of those degrees
+  log = "xy",                     # log-log scale
+  xlab = "In-degree (log scale)",
+  ylab = "Frequency (log scale)",
+  main = "Out-degree Distribution (log-log)"
+)
+
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Quick check in log space:
+plot(table(in_deg), log="xy", 
+     main = "In-degree distribution (log-log)",
+     xlab = "In-degree", ylab = "Frequency")
+
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+dSortedg <-sort.int(degree(g_l_s, mode = "in"),decreasing=TRUE,index.return=FALSE)
+head(dSortedg, n = 10)
+
+dSortedg <-sort.int(degree(g_l_s, mode = "out"),decreasing=TRUE,index.return=FALSE)
+head(dSortedg, n = 10)
+
+#' 
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#out_strength TOTAL exposure
+out_strength <- strength(g_l_s, mode = "out", weights = E(g_l_s)$weight)
+
+print(data.frame(head(round(sort(out_strength, decreasing = T)/1000000000, 3), n = 10)))
+#Percentage of Top 10 exposure to total expsoure
+sum(head(round(sort(out_strength, decreasing = T)/1000000000, 3), n = 10))/sum(round(out_strength/1000000000,3))
+
+
+#' 
+#' 
+#' 
+#' 
+#' 
+#' 
+#' # Centrality Measures ---------------------------------------
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+degcent <-   centr_degree(g_l_s, mode="out", loops = TRUE)
+#degcent
+closecent <- centr_clo(g_l_s, mode = "out")
+#closecent
+betwcent <-  centr_betw(g_l_s, directed=TRUE)
+#betwcent
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+eig_centrality <- eigen_centrality(g_l_s, directed = TRUE, weights = NA)
+eig_centrality$value
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# This is alpha measure for Katz, 0.9 to make sure it is smaller than the dominant eigenvalue
+alpha <- 0.9/11
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#evcent <-    centr_eigen(g_l_s, directed=TRUE)
+#evcent should only be used in strongly connected graphs or undirected
+katzcent <-  igraph::alpha_centrality(g_l_s, alpha=alpha, loops = TRUE, weights = NA)
+#katzcent#katzcentNULL
+# alpha: 0.2 fast decay = short paths important, 0.9 longer paths important
+prcent <-  page_rank(g_l_s, directed=TRUE)
+#prcent
+
+#' 
+#' 
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+degcent$centralization
+closecent$centralization
+betwcent$centralization
+#katzcent$centralization
+prcent$centralization
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Weighted degree centrality (in-strength and out-strength)
+in_strength <- strength(g_l_s, mode = "in", weights = E(g_l_s)$weight)
+out_strength <- strength(g_l_s, mode = "out", weights = E(g_l_s)$weight)
+
+# Combine results into a data frame
+weighted_degree <- data.frame(
+  Bank = V(g_l_s)$name,
+  In_Strength = in_strength,
+  Out_Strength = out_strength
+)
+
+print(weighted_degree)
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Betweenness centrality (weighted)
+w_betwcent <- betweenness(g_l_s, directed = TRUE, weights = 1/E(g_l_s)$weight)
+
+# Add to the data frame
+weighted_degree$Betweenness = w_betwcent
+print(weighted_degree)
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+summary(E(g_l_s)$weight)
+any(E(g_l_s)$weight <= 0) 
+min(E(g_l_s)$weight)
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Calculate Katz centrality (directed, with weights)
+katz_centrality <- eigen_centrality(g_l_s, directed = TRUE, weights = E(g_l_s)$weight, options = list(alpha = alpha))$vector
+
+# Add to the data frame
+weighted_degree$Katz = katz_centrality
+print(weighted_degree)
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# PageRank (weighted)
+pagerank_scores <- page_rank(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
+# Add to the data frame
+weighted_degree$PageRank = pagerank_scores
+print(weighted_degree)
+
+#' 
+#' 
+#' 
+#' # Component and Cluster Analysis
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# This might be deleted as it does not make much sense as there is basically only one cluster of weakly connected component
+# Find weakly connected components
+wcc <- components(g_l_s, mode = "strong")
+
+# Number of components
+num_components <- wcc$no
+component_sizes <- table(wcc$csize)
+
+#' 
+#' 
+#' ### Assortativity 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Degree assortativity
+degree_assort <- assortativity_degree(g_l_s, directed = TRUE)
+
+
+# Weighted assortativity
+weighted_assort <- assortativity(g_l_s, types1 = strength(g_l_s, mode = "out", weights = E(g_l_s)$weight), 
+                                    types2 = strength(g_l_s, mode = "in", weights = E(g_l_s)$weight))
+
+cat("Degree assortativity coefficient:", degree_assort, "\n")
+cat("Weighted assortativity coefficient:", weighted_assort, "\n")
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+sum(strength(g_wire, mode = "out", weights = E(g_wire)$weight))/1e9
+ sum(strength(g_l_s, mode = "out", weights = E(g_l_s)$weight))/1e9
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+
+
+## 2.  Weighted distance metrics
+diam_invW  <- diameter(g_l_s, directed = TRUE, weights = 1 / E(g_l_s)$weight)
+dist_mat   <- distances(g_l_s, weights = 1 / E(g_l_s)$weight, mode = "out")
+apl_invW   <- mean(dist_mat[is.finite(dist_mat)])
+
+## 3.  Weighted betweenness (1/w)
+bet        <- betweenness(g_l_s, directed = TRUE, weights = 1 / E(g_l_s)$weight)
+avg_bet_invW <- mean(bet)
+
+## 4.  Weighted eigenvector & PageRank
+eig_w      <- eigen_centrality(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
+avg_eig_w  <- mean(eig_w)
+
+pr_w       <- page_rank(g_l_s, directed = TRUE, weights = E(g_l_s)$weight)$vector
+avg_pr_w   <- mean(pr_w)
+
+## 2.  Weighted distance metrics
+diam_invW  <- diameter(g_wire, directed = TRUE, weights = 1 / E(g_wire)$weight)
+dist_mat   <- distances(g_wire, weights = 1 / E(g_wire)$weight, mode = "out")
+apl_invW   <- mean(dist_mat[is.finite(dist_mat)])
+
+## 3.  Weighted betweenness (1/w)
+bet        <- betweenness(g_wire, directed = TRUE, weights = 1 / E(g_wire)$weight)
+avg_bet_invW <- mean(bet)
+
+## 4.  Weighted eigenvector & PageRank
+eig_w      <- eigen_centrality(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+avg_eig_w  <- mean(eig_w)
+
+pr_w       <- page_rank(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+avg_pr_w   <- mean(pr_w)
+
+
+cat("diam_invW:", diam_invW, "\n")
+cat("apl_invW:", apl_invW, "\n")
+cat("avg_bet_invW:", avg_bet_invW, "\n")
+cat("avg_eig_w:", avg_eig_w, "\n")
+cat("avg_pr_w:", avg_pr_w, "\n")
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+## 1. Inverse-weight edge length for betweenness
+
+## 2. Compute centralities (vectors)
+cent <- tibble(
+  bank      = V(g_wire)$name,
+  degree    = degree(g_wire, mode = "all"),
+  strength  = strength(g_wire, weights = E(g_wire)$weight),
+  bet_1w    = betweenness(g_wire, directed = TRUE, weights = 1/E(g_wire)$len),
+  eig_w     = eigen_centrality(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector,
+  pr_w      = page_rank(g_wire, directed = TRUE, weights = E(g_wire)$weight)$vector
+)
+
+## 3. Gather, rank, slice Top-5
+top5 <- cent %>%
+  pivot_longer(-bank, names_to = "metric", values_to = "value") %>%
+  group_by(metric) %>%
+  arrange(desc(value)) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+## 4. Display: one table per metric
+top5 %>%
+  arrange(metric, desc(value)) %>%
+  print(n = Inf)
+
+#' 
+#' 
+#' Question:
+#' What exactly does normalize do again, should it be used
+#' since evcent should not be used weakly connected what are other good measures
+#' Is pagerank even good measure for financial network
+#' Analyze with weighs or without

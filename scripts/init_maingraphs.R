@@ -1,0 +1,291 @@
+# Source Rmd: init_LoanNetwork.Rmd
+# Generated: 2025-08-16 08:00
+# Purpose: converted from Rmd for pipeline/audit use
+
+suppressPackageStartupMessages({ library(here) })
+set.seed(123)
+
+#' ---
+#' title: "Processing Network"
+#' output: html_notebook
+#' ---
+#' 
+#' This notebooks
+#' Input: Dataframe
+#' Output: 
+#' - g: igraph from dataframe
+#' - g_l: largest connected component of g
+#' - g_l_s: largest connected simplified component igraph from g -> g_l -> g_l_s (summed edges = simplified)
+#' - g_topx: most important X amount of banks simplified  g_l_s -> g_topx 
+#' - g_sib : only systemically important banks, simplified g_l_s -> g_sib
+#' 
+#' - net_l_s: network object of g_l_s
+#' - net_topx: network object of g_topx
+#' - net_sib: network object of g_sib
+#' 
+## ----include=FALSE------------------------------------------------------------------------------------------------------------------------
+#Install and Load required packages
+library('here')
+library('dplyr')
+library('readxl')
+library('stringr')
+library('purrr')
+library('tidyr')
+library('stringdist')
+library('intergraph')
+library('ggraph')
+library('visNetwork')
+library('igraph')
+
+
+#' 
+#' Read and process data
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#Reading in processed data
+df <- read.csv("./Processing/processed_loan_v3.csv")
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Group and sum the loans together, rename the columns
+df_agg <- df %>%
+  group_by(LoanID, Lender, Borrower) %>%
+  summarise(
+  AssignedLoanShare = sum(AssignedLoanShare),
+  Roles = paste(unique(Role), collapse = ", "),
+  Sector = first(Sector),
+  MaturityDate = first(Maturity.Date),
+  IssueDate = first(Issue.Date),
+  LenderRegion = first(LenderRegion),
+  LenderMarket = first(LenderMarket), 
+  BorrowerDomicile = first(BorrowerDomicile),
+  TrancheType = first(TrancheType),
+  TrancheCurrency = first(TrancheCurrency),
+  Seniority = first(Seniority)
+  # etc...
+  )
+
+
+#' 
+#' Make g from dataframe
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#g being the large dataframe from the processed data turned into an igraph object, not processed
+g <- graph_from_data_frame(
+  d = df_agg[, c("Lender", "Borrower", "AssignedLoanShare", "Roles")],
+  directed = TRUE
+)
+
+# Set the 'AssignedLoanShare' as the edge weight
+E(g)$weight <- E(g)$AssignedLoanShare
+
+# Optionally keep 'Roles' as an edge attribute:
+#E(g)$roles <- df_agg$Roles
+
+#' 
+#' 
+#' Create subgraph g_l being the largest connected component of g 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Identify connected components
+components <- igraph::components(as_undirected(g))
+
+# Find the size of the largest connected component
+print(max(components$csize))
+
+#Could use largest_component() but does not retain VertexID of original graph - could be used later is not needed
+
+# Find the component ID of the largest connected component
+largest_component_id <- which.max(components$csize)
+
+# Create a subgraph of the largest connected component
+g_l <- induced_subgraph(g, vids = which(components$membership == largest_component_id))
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# This is a fix for symbolically weighted edges, for correctly calculating centrality measures later
+# They are just the remains of Sole lender 100% scale factor calculation
+E(g_l)$weight[E(g_l)$weight == 0] <- 0.1
+
+#' 
+#' 
+#' Simplify largest connected component g_l into g_l_s, summing the edges between two nodes
+#' Removing attributes not used for current analysis goals
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# g_l_s being the simplified graph, summing all weights between the same two nodes. 
+g_l_s <- igraph::simplify(
+  g_l, 
+  edge.attr.comb = list(weight = "sum"),
+  remove.loops = TRUE
+)
+g_l_s <- delete_edge_attr(g_l_s, "Roles")
+g_l_s <- delete_edge_attr(g_l_s, "AssignedLoanShare")
+E(g_l_s)$weight[E(g_l_s)$weight == 0.1] <- 1
+E(g_l_s)$weight <- round(E(g_l_s)$weight)
+
+# Confirm Mulitedges have been summed:
+print("Multiedges exist:")
+any_multiple(g_l_s)
+
+#' 
+#' # Subgraph Top 10s
+#' Compute (Sample) Top 10 largest borrowers and sellers by USD Amount and create Subgraph
+## -----------------------------------------------------------------------------------------------------------------------------------------
+# Compute total out and in weights
+out_strength <- strength(g_l_s, mode = "out", weights = E(g_l_s)$weight)
+in_strength <- strength(g_l_s, mode = "in", weights = E(g_l_s)$weight)
+
+# Select top lenders and borrowers
+top_lenders <- names(sort(out_strength, decreasing = TRUE))[1:10]
+top_borrowers <- names(sort(in_strength, decreasing = TRUE))[1:10]
+
+# Combine unique nodes
+important_nodes <- unique(c(top_lenders, top_borrowers))
+
+# Find their neighbors
+neighbors <- unique(unlist(igraph::neighborhood(g_l_s, order = 1, nodes = important_nodes, mode = "all")))
+
+# Create the subgraph
+#sub_g <- induced_subgraph(g_l, vids = neighbors) # This makes important nodes + their neighbors in the network
+g_topx <- induced_subgraph(g_l_s, vids = important_nodes) # This makes it only the important nodes are in the network
+
+#' 
+#' 
+#' Verify correct subgraph has been implemented
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#Number of vertices and edges
+vcount(g_topx)
+ecount(g_topx)
+gsize(g_topx)
+count_components(g_topx)
+is_connected(g_topx)
+print("Multiedges exist:")
+any_multiple(g_topx)
+
+#' 
+#' 
+#' Building subgraph of 29 globally systemically important banks
+## -----------------------------------------------------------------------------------------------------------------------------------------
+importantbanks <- c(
+  'JP MORGAN CHASE',
+  'CITI',
+  'HSBC',
+  'AB CHINA',
+  'BANK OF AMERICA',
+  'BANK OF CHINA',
+  'BARCLAYS',
+  'BNP PARIBAS',
+  'CHINA CONSTRUCTION BANK',
+  'DEUTSCHE BANK',
+  'GOLDMAN SACHS',
+  'CREDIT AGRICOLE',
+  'ICB CHINA',
+  'MUFG',
+  'UBS',
+  'BANK OF COMMUNICATIONS',
+  'BNY',
+  'BPCE',
+  'ING BANK',
+  'MIZUHO',
+  'MORGAN STANLEY',
+  'ROYAL BANK OF CANADA',
+  'BANCO SANTANDER',
+  'SOCIETE GENERALE',
+  'STANDARD CHARTERED',
+  'STATE STREET BANK',
+  'SMBC',
+  'TORONTO DOMINION BANK',
+  'WELLS FARGO'
+)
+g_sib <- induced_subgraph(g_l_s, vids = importantbanks) 
+
+#' 
+#' 
+#' Make the g_sib a connected network
+## -----------------------------------------------------------------------------------------------------------------------------------------
+## 1.  locate the G-SIB vertices in the big graph
+gsib_vids <- which(V(g_l_s)$name %in% importantbanks)
+
+## 2.  collect their 1-hop neighbourhoods
+##     - order = 1 …… reach exactly one step
+##     - mode  = "all" …… follow both in- and out-going edges
+ego_list  <- neighborhood(g_l_s,
+                          order = 1,
+                          nodes = gsib_vids,
+                          mode  = "all")
+
+## 3.  union the vertex sets and build the induced subgraph
+ego_nodes <- unique(unlist(ego_list))
+g_ego    <- induced_subgraph(g_l_s, vids = ego_nodes)
+
+## 4.  quick sanity checks
+cat("nodes:", vcount(g_ego), "  edges:", ecount(g_ego), "\n")
+cat("components:", components(g_ego)$no, "\n")   # should now be 1
+
+## -----------------------------------------------------------------------------------------------------------------------------------------
+
+wire_paths_k <- function(g, gsib_names,
+                         k    = 2,       # maximum hop length
+                         mode = "all") { # "all", "out", or "in"
+
+  gsib_vids <- which(V(g)$name %in% gsib_names)
+  pairs     <- combn(gsib_vids, 2, simplify = FALSE)
+
+  keep_nodes <- gsib_vids                    # start with the G-SIBs
+
+  for (p in pairs) {
+    d <- distances(g, v = p[1], to = p[2],
+                   mode = mode, weights = NA)     # ← IGNORE WEIGHTS
+    if (is.finite(d) && d <= k) {
+      sp <- shortest_paths(g,
+                           from    = p[1],
+                           to      = p[2],
+                           mode    = mode,
+                           weights = NA)$vpath[[1]] # ← IGNORE WEIGHTS
+      keep_nodes <- c(keep_nodes, sp)
+    }
+  }
+
+  induced_subgraph(g, vids = unique(keep_nodes))
+}
+
+## --------- run it ----------------------------------------------------------
+g_wire <- wire_paths_k(g_l_s, importantbanks, k = 2)  # or k = 3 if needed
+cat("nodes:", vcount(g_wire),
+    "  edges:", ecount(g_wire),
+    "  components:", components(g_wire)$no, "\n")
+
+
+
+#' 
+#' 
+#' 
+#' Preparing network objects for further use (ERGM)
+## -----------------------------------------------------------------------------------------------------------------------------------------
+net_l_s <- intergraph::asNetwork(g_l_s)
+net_topx <- intergraph::asNetwork(g_topx)
+net_sib <- intergraph::asNetwork(g_sib)
+net_wire <- intergraph::asNetwork(g_wire)
+
+network::set.edge.attribute(net_l_s, "weight", igraph::get.edge.attribute(g_l_s, "weight"))
+
+# Verify edge weights (replace "weight" with actual edge attribute name)
+#network::set.edge.attribute(net, "weight", igraph::get.edge.attribute(g_l, "weight"))
+
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+#Check model formation worked as intended
+summary(net_l_s)
+network::list.edge.attributes(net_l_s)
+
+#' 
+#'
+source(here::here("R","ensure.R"))
+cache_write(
+  list(g_l_s = g_l_s,   # << replace with your igraph object name
+       g_wire    = g_wire,       # << replace with your sna/network object name
+       g_sib = g_sib,
+       net_l_s = net_l_s,
+       net_wire = net_wire,
+       importantbanks = importantbanks
+  ),
+  here::here("data/derived/graphs","main_graphs.rds")
+)

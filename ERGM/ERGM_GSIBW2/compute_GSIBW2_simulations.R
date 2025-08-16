@@ -2,6 +2,10 @@ library(statnet)      # loads network, sna, ergm
 library(ergm.count)   # valued terms
 set.seed(123)
 
+source(here::here("R","ensure.R"))
+ensure_ergm_fit()            # loads fit_wire if not already present
+
+
 # your fitted model object
 fit <- fit_wire2         # change to your object name
 obs <- fit$network        # the observed network
@@ -32,7 +36,7 @@ nsim <- 500            # 500 - 1 000 is typical
 sims <- simulate(fit, nsim = nsim, output = "network",
                  control = control.simulate.ergm(MCMC.burnin = 1e5))
 
-# matrix: nsim × n_stats
+# matrix: nsim ? n_stats
 sim_stats <- t(vapply(sims, gof_stats, numeric(length(gof_stats(obs)))))
 obs_stats <- gof_stats(obs)
 colnames(sim_stats) <- names(obs_stats)
@@ -53,7 +57,7 @@ qs <- seq(0, 1, by = .01)
 # observed quantiles
 q_obs <- quantile(w_obs, probs = qs, names = FALSE)
 
-# matrix: prob × sim  (handles different edge counts)
+# matrix: prob ? sim  (handles different edge counts)
 q_sim <- sapply(sims, function(net)
   quantile(as.numeric(net %e% "w_scale"), probs = qs, names = FALSE))
 
@@ -76,3 +80,5 @@ abline(0, 1, lty = 2)
 logLik(fit_wire2, add = TRUE)
 
 mcmc.diagnostics(fit_wire2, which = "plots")
+
+saveRDS(c("sims","obs"), here::here("data/derived/models","ergm_sims.rds"))

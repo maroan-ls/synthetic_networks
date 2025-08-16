@@ -1,0 +1,137 @@
+# Source Rmd: BaselineGraphs/basegraph_analysis_function.Rmd
+# Generated: 2025-08-16 07:59
+# Purpose: converted from Rmd for pipeline/audit use
+
+suppressPackageStartupMessages({ library(here) })
+set.seed(123)
+
+#' ---
+#' title: "graph_analysis_function"
+#' author: "Maroan El Sirfy"
+#' date: "2025-02-12"
+#' output: html_document
+#' ---
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+library(igraph)
+library(dplyr)
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+### Define a function to compute the baseline measures for one graph
+compute_graph_metrics <- function(g) {
+  
+  # --- Binary versions: ignore weights by setting weights = NA
+  nodes <-  vcount(g)
+  edges <-  ecount(g)
+  components <-  count_components(g)
+  dens_bin <- edge_density(g, loops = FALSE)
+  diam_bin <- diameter(g, directed = TRUE, weights = NA)
+  md_bin   <- mean_distance(g, directed = TRUE, weights = NA)
+  clustering_coeff <- transitivity(g, type = "average", weights = NA)
+  
+  avg_deg   <- mean(degree(g, mode = "all"))
+  avg_in_deg <-  mean(degree(g, mode = "in"))
+  avg_out_deg <-  mean(degree(g, mode = "out"))
+    
+  # Degree assortativity
+  degree_assort <- assortativity_degree(g, directed = TRUE)
+  
+  # --- Weighted versions: use the weight
+  if (!is.null(E(g)$weight)) {
+    diam_wt   <- diameter(g, weights = E(g)$weight)
+    md_wt     <- mean_distance(g, weights = E(g)$weight)
+    avg_str <- mean(strength(g, mode = "all", weights = E(g)$weight))
+    avg_in_str   <- mean(strength(g, mode = "in", weights = E(g)$weight))
+    #avg_out_str   <- mean(strength(g, mode = "out", weights = E(g)$weight))
+    # Weighted assortativity
+    weighted_assort <- assortativity(g, values = strength(g, mode = "out", weights = E(g)$weight), 
+                                    values.in = strength(g, mode = "in", weights = E(g)$weight))
+  } else {
+    diam_wt   <- NA
+    md_wt     <- NA
+    avg_str   <- NA
+    avg_in_str <- NA
+    weighted_assort <- NA
+  }
+
+  
+  # Combine all measures into a named vector.
+  metrics <- c(
+    nodes = nodes,
+    edges = edges,
+    components = components,
+    density         = dens_bin,
+    diameter        = diam_bin,
+    #diameter_weighted      = diam_wt,
+    mean_distance   = md_bin,
+    #mean_distance_weighted = md_wt,
+    transitivity    = clustering_coeff,
+    avg_degree      = avg_deg,
+    avg_degree_in_out   = avg_in_deg,
+    #avg_degree_out_binary  = avg_out_deg,
+    #avg_total_strenght     = avg_str,
+    #avg_borrowed_total     = avg_in_str,
+    degree_assortativity   = degree_assort
+    #degree_assortativity_weighted = weighted_assort
+    
+  )
+  
+  return(metrics)
+}
+
+#' 
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+graphs <- list(Real = g_wire, ER = g_er, SW = swg, BA = g_pa, 
+               GSIBW2 = g_wire, ER_sub = g_er_sub, SW_sub = swg_sub, BA_sub = g_pa_sub)
+
+#' 
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+### Compute the metrics for each graph and combine them into a data frame
+
+# Use lapply to apply the function to every graph in the list
+metrics_list <- lapply(graphs, compute_graph_metrics)
+
+# Combine the list of named vectors into a matrix:
+# (The resulting matrix will have each column corresponding to one graph.)
+metrics_matrix <- do.call(cbind, metrics_list)
+
+# Convert the matrix to a data frame (if desired)
+metrics_df <- as.data.frame(metrics_matrix)
+row_names <- rownames(metrics_df)
+metrics_df['degree_assortativity','BA'] <- assortativity_degree(as_undirected(g_pa))
+metrics_df['degree_assortativity','BA_sub'] <- assortativity_degree(as_undirected(g_pa_sub))
+
+
+metrics_df <- as.data.frame(lapply(metrics_df, function(x) formatC(x, format = "f", digits = 4, drop0trailing = TRUE)))
+rownames(metrics_df) <- row_names
+
+
+
+
+#' 
+## -----------------------------------------------------------------------------------------------------------------------------------------
+library(ggplot2)
+
+count_edges_gls <- ecdf(E(g_l_s)$weight)
+gls_weight  <- data.frame(w = sort(unique(E(g_l_s)$weight)),
+                  F = 1 - count_edges_gls(sort(unique(E(g_l_s)$weight))))
+ggplot(gls_weight, aes(w, F)) +
+  geom_step() +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Exposure size (USD)", y = "P(W ≥ w)")
+
+
+count_edges_gls <- ecdf(E(g_wire)$weight)
+gls_weight  <- data.frame(w = sort(unique(E(g_wire)$weight)),
+                  F = 1 - count_edges_gls(sort(unique(E(g_wire)$weight))))
+ggplot(gls_weight, aes(w, F)) +
+  geom_step() +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Exposure size (USD)", y = "P(W ≥ w)")
+
+#' 
