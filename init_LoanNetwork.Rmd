@@ -18,18 +18,17 @@ Output:
 
 ```{r include=FALSE}
 #Install and Load required packages
-if (!require('here')) install.packages('here'); library('here')
-
-yif (!require('dplyr')) install.packages('dplyr'); library('dplyr')
-if (!require('readxl')) install.packages('readxl'); library('readxl')
-if (!require('stringr')) install.packages('stringr'); library('stringr')
-if (!require('purrr')) install.packages('purrr'); library('purrr')
-if (!require('tidyr')) install.packages('tidyr'); library('tidyr')
-if (!require('stringdist')) install.packages('stringdist'); library('stringdist')
-if (!require('intergraph')) install.packages('intergraph'); library('intergraph')
-if (!require('ggraph')) install.packages('ggraph'); library('ggraph')
-if (!require('visNetwork')) install.packages('visNetwork'); library('visNetwork')
-if (!require('igraph')) install.packages('igraph'); library('igraph')
+library('here')
+library('dplyr')
+library('readxl')
+library('stringr')
+library('purrr')
+library('tidyr')
+library('stringdist')
+library('intergraph')
+library('ggraph')
+library('visNetwork')
+library('igraph')
 
 ```
 
