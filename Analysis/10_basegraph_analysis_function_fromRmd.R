@@ -3,6 +3,13 @@
 # Purpose: converted from Rmd for pipeline/audit use
 
 suppressPackageStartupMessages({ library(here) })
+
+
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
+ensure_baselines() 
+
+
 set.seed(123)
 
 #' ---

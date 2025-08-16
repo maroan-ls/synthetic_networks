@@ -6,6 +6,9 @@ output: html_document
 ---
 
 ```{r}
+
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
 library(igraph)
 library(dplyr)
 ```

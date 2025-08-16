@@ -1,3 +1,7 @@
+
+source(here::here("R","ensure.R"))
+ensure_main_graphs("g_l_s")
+
 library(igraph)
 library(dplyr)
 library(tidyr)

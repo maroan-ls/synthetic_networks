@@ -1,5 +1,8 @@
 # GSIB GWIRE JUSTIFICATION
 
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
+
 gsib_ids <- match(importantbanks, V(g_l_s)$name)   # 1-based vertex indices
 #  If it is already a numeric index vector, just:
 # gsib_ids <- importantbanks
@@ -56,7 +59,7 @@ rank_str <- rank(-total_exposure_lcc, ties.method = "first")
 sum(rank_str[gsib_ids] <= 30)   # GSIBs in weighted-degree top-50
 median(rank_str[gsib_ids])      # median GSIB rank
 
-# 5.  (Optional) Degree Ginís on the full LCC -----------------------
+# 5.  (Optional) Degree Gin?s on the full LCC -----------------------
 deg_all  <- degree(lcc, mode = "all")
 deg_out  <- degree(lcc, mode = "out")
 deg_in   <- degree(lcc, mode = "in")

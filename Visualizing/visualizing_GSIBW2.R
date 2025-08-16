@@ -1,3 +1,6 @@
+source(here::here("R","ensure.R"))
+ensure_main_graphs("g_wire")
+
 
 # 1) Put labels & colors onto the igraph itself (works nicely with visIgraph)
 V(g_wire)$label <- V(g_wire)$name

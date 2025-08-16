@@ -1,3 +1,8 @@
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
+ensure_baselines() 
+
+
 library(igraph)
 library(ineq)          # Gini
 

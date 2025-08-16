@@ -11,6 +11,11 @@
 #   . Metrics already in [0,1]   ??? left untouched.
 # ------------------------------------------------------------------------------
 
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
+ensure_baselines() 
+
+
 compute_graph_metrics <- function(g) {
   if (!inherits(g, "igraph")) stop("`g` must be an igraph object")
   requireNamespace("igraph", quietly = TRUE)

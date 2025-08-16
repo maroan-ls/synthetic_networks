@@ -1,3 +1,7 @@
+source(here::here("R","ensure.R"))
+ensure_ergm_sims()  
+
+
 # --- requirements
 library(igraph)
 library(intergraph)

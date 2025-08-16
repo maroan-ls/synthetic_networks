@@ -1,7 +1,8 @@
 # Source Rmd: graph_descriptive_analysis.Rmd
 # Generated: 2025-08-16 08:00
 # Purpose: converted from Rmd for pipeline/audit use
-
+source(here::here("R","ensure.R"))
+ensure_main_graphs()
 suppressPackageStartupMessages({ library(here) })
 set.seed(123)
 

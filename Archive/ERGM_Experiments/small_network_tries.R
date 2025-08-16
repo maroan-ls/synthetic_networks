@@ -1,3 +1,7 @@
+source(here::here("R","ensure.R"))
+ensure_ergm_sims()
+ensure_main_graphs("net_wire")
+
 
 # core packages
 library(network)      # network object

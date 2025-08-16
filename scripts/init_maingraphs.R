@@ -280,7 +280,8 @@ network::list.edge.attributes(net_l_s)
 #'
 source(here::here("R","ensure.R"))
 cache_write(
-  list(g_l_s = g_l_s,   # << replace with your igraph object name
+  list(g = g,
+       g_l_s = g_l_s,   # << replace with your igraph object name
        g_wire    = g_wire,       # << replace with your sna/network object name
        g_sib = g_sib,
        net_l_s = net_l_s,

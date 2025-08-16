@@ -1,5 +1,6 @@
 ## For calculating heavy tail and degree distributions
-
+source(here::here("R","ensure.R"))
+ensure_main_graphs("g_l_s")
 
 library(ineq)     # if not installed: install.packages("ineq")
 

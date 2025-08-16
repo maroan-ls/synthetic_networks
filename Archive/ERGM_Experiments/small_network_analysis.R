@@ -1,3 +1,8 @@
+
+source(here::here("R","ensure.R"))
+ensure_ergm_sims()
+ensure_main_graphs("net_wire")
+
 # Small network analysis
 set.seed(123)
 
@@ -53,7 +58,7 @@ stats_obs <- extract_stats(net_wire)
 qqplot <- function(obs, sims, main = "", ...) {
   qs   <- seq(0, 1, length.out = 201)   # finer grid, esp. in the tail
   qobs <- quantile(obs, qs)
-  qsims <- apply(sims, 2, quantile, qs)   # nsim × 101 matrix
+  qsims <- apply(sims, 2, quantile, qs)   # nsim ? 101 matrix
   qlo  <- apply(qsims, 1, quantile, .025)
   qhi  <- apply(qsims, 1, quantile, .975)
   plot(qobs, qobs, type = "n",

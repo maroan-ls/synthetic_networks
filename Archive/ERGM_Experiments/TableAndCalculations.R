@@ -1,3 +1,6 @@
+source(here::here("R","ensure.R"))
+ensure_ergm_sims()
+
 # Other small measures calculated that are mentioned
 # Calculating Loan exposure
 all.equal(sum(weighted_degree$Out_Strength), sum(out_strength))
@@ -26,11 +29,6 @@ library(stargazer)
 
 # Export ERGM model results as LaTeX table
 stargazer(fit_wire2, type = "latex", title = "ERGM Results", out = "ergm_results.tex")
-
-
-
-f14_summary <- summary(fit_weight14)
-f14_summary
 
 
 library(xtable)
