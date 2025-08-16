@@ -19,7 +19,7 @@ ensure_baselines     <- function(vars = c("g_er","g_er_sub","swg","swg_sub","g_p
 ensure_ergm_fit      <- function(vars = "fit_wire2") {
   .ensure(here::here("data/derived/models","ergm_fit.rds"), vars)
 }
-ensure_ergm_sims     <- function(vars = "sims", "obs") {
+ensure_ergm_sims     <- function(vars = c("sims", "obs")) {
   .ensure(here::here("data/derived/models","ergm_sims.rds"), vars)
 }
 
