@@ -62,7 +62,7 @@ ggraph(g_core, layout = "stress") +
 library(igraph); library(ggraph); library(graphlayouts)
 g_core <- {
   kc  <- coreness(g_draw2, mode = "all")
-  thr <- quantile(kc, 0.90)  # adjust (e.g., 0.85–0.95) for figure density
+  thr <- quantile(kc, 0.90)  # adjust (e.g., 0.85-0.95) for figure density
   induced_subgraph(g_draw2, vids = which(kc >= thr))
 }
 
@@ -112,7 +112,7 @@ ggraph(g_draw2, layout = "manual", x = coords[,1], y = coords[,2]) +
 
 # plot (ggraph)
 ggraph(g_draw2, layout = "manual", x = coords[,1], y = coords[,2]) +
-  geom_edge_link(alpha = 0.06, linewidth = 0.02) +
+  geom_edge_link(alpha = 0.03, linewidth = 0.10) +
   geom_node_point(aes(size = degdraw), alpha = 0.9) +
   geom_node_text(aes(label = labs), repel = TRUE, size = 3) +
   scale_size(range = c(1.5, 6)) +
@@ -138,9 +138,26 @@ kv <- kc[ends_idx[,2]]
 keep_e <- which(abs(ku - kv) <= 1)        # keep local links
 g_plot <- subgraph.edges(g_draw2, keep_e, delete.vertices = FALSE)
 
-# plot
+library(grid)  # for unit()
+
 ggraph(g_plot, layout = "manual", x = coords[,1], y = coords[,2]) +
   geom_edge_link(alpha = 0.05, linewidth = 0.15) +
   geom_node_point(aes(size = degdraw), alpha = 0.9) +
-  scale_size(range = c(1.3, 5)) +
-  theme_graph()
+  scale_size_continuous(
+    name   = "Total degree",               # legend title
+    breaks = c(100, 200, 300, 400),        # ticks you want
+    range  = c(1.3, 5),                    # keep plot sizes the same
+    guide  = guide_legend(
+      title.position = "top",
+      keywidth  = unit(8, "mm"),           # bigger keys
+      keyheight = unit(8, "mm"),
+      override.aes = list(alpha = 1)       # darker dots in legend
+    )
+  ) +
+  theme_graph() +
+  theme(
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text  = element_text(size = 13),
+    legend.key.size = unit(8, "mm"),       # extra room if needed
+    legend.spacing.y = unit(4, "mm")
+  )
