@@ -21,7 +21,7 @@ This is a repository for supplementary code material for the Master Thesis "Synt
 Run the replication driver. This **does not** recompute the slow ERGM fit; it loads cached artifacts and runs only lightweight steps.
 
 ```r
-source("scripts/replicate.R")
+source("R/replicate.R")
 ```
 
 Outputs (tables/plots) should be created by the analysis scripts and any caches should be read from:
@@ -55,7 +55,7 @@ Analyses and figures can be rebuilt (reading caches) with:
 
 ```r
 # Loads caches and runs lightweight analysis
-source("scripts/replicate.R")
+source("R/replicate.R")
 ```
 
 ## Reproducibility Details

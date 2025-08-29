@@ -14,9 +14,6 @@ ensure_main_graphs("g_l_s")
 
 
 
-
-
-
 library(igraph)
 library(ggraph)
 library(graphlayouts)   # for layout = "stress"
