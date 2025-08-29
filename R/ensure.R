@@ -10,17 +10,25 @@ suppressPackageStartupMessages({ library(here) })
   invisible(TRUE)
 }
 
-ensure_main_graphs   <- function(vars = c("g", "g_l_s","g_wire", "g_sib", "net_l_s", "net_wire","net_sib")) {
-  .ensure(here::here("data/derived/graphs","main_graphs.rds"), vars)
+ensure_main_graphs   <- function(vars = c("g", "g_l_s","g_wire", "g_sib", "net_l_s", "net_wire","net_sib"),
+                                 envir = parent.frame()) {
+  .ensure(here::here("data/derived/graphs","main_graphs.rds"),
+          vars, envir = envir)
 }
-ensure_baselines     <- function(vars = c("g_er","g_er_sub","swg","swg_sub","g_pa", "g_pa_sub")) {
-  .ensure(here::here("data/derived/graphs","baseline_graphs.rds"), vars)
+ensure_baselines     <- function(vars = c("g_er","g_er_sub","swg","swg_sub","g_pa", "g_pa_sub"),
+                                 envir = parent.frame()) {
+  .ensure(here::here("data/derived/graphs","baseline_graphs.rds"),
+          vars, envir = envir)
 }
-ensure_ergm_fit      <- function(vars = "fit_wire2") {
-  .ensure(here::here("data/derived/models","ergm_fit.rds"), vars)
+ensure_ergm_fit      <- function(vars = "fit_wire2", 
+                                 envir = parent.frame()) {
+  .ensure(here::here("data/derived/models","ergm_fit.rds"),
+          vars, envir = envir)
 }
-ensure_ergm_sims     <- function(vars = c("sims", "obs")) {
-  .ensure(here::here("data/derived/models","ergm_sims.rds"), vars)
+ensure_ergm_sims     <- function(vars = c("sims", "obs"),
+                                 envir = parent.frame()) {
+  .ensure(here::here("data/derived/models","ergm_sims.rds"),
+          vars, envir = envir)
 }
 
 

@@ -1,12 +1,29 @@
 source(here::here("R","ensure.R"))
 ensure_main_graphs("g_l_s")
 
+
+
+
+
+#############################################
+#---------------  WARNING -------------------
+# ONLY RUN IF YOU REALLY NEED TO SEE ALL VIz
+# CAN TAKE VERY LONG TO RUN AND PLOT (>1Hr)
+#############################################
+
+
+
+
+
+
+
 library(igraph)
 library(ggraph)
 library(graphlayouts)   # for layout = "stress"
 
 g_draw2 <- g_l_s                         # your graph
 set.seed(123)
+
 
 
 # Community detection that supports directed graphs
