@@ -1,5 +1,6 @@
 library(statnet)      # loads network, sna, ergm
 library(ergm.count)   # valued terms
+libarary(ergm)
 set.seed(123)
 
 source(here::here("R","ensure.R"))

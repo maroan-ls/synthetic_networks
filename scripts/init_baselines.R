@@ -6,6 +6,8 @@
 source(here::here("R","ensure.R"))
 ensure_main_graphs() 
 
+library(igraph)
+
 suppressPackageStartupMessages({ library(here) })
 set.seed(123)
 
