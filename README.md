@@ -58,6 +58,9 @@ Analyses and figures can be rebuilt (reading caches) with:
 source("R/replicate.R")
 ```
 
+How this should look in Detail:
+- Step 1:
+
 ## Reproducibility Details
 - Package versions are pinned by `renv.lock`. Use `renv::restore()` to recreate the environment.
 - Paths are project-rooted via `here::here()`, so no manual `setwd()` is needed.
