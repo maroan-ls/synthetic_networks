@@ -11,7 +11,11 @@ This is a repository for supplementary code material for the Master Thesis "Synt
 
 ## Setup (one time)
 1. **Open the project** by double-clicking the `*.Rproj` file at the repo root.
-2. **Restore packages** with `{renv}`:
+2. **Restore packages** EASY run:
+   ```r
+   source("R/replicate.R")
+   ```
+3. **Alternatively** directly with `{renv}` (this does the same as above but gives more control:
    ```r
    install.packages("renv")
    renv::restore()
@@ -57,9 +61,20 @@ Analyses and figures can be rebuilt (reading caches) with:
 # Loads caches and runs lightweight analysis
 source("R/replicate.R")
 ```
+The `.ensure` implementation should be able to run without a dedicated library() to any package.  
 
+## Reproducability Example
 How this should look in Detail:
-- Step 1:
+
+1. After running `replicate.R`, you should see variables in your Global Environment.
+2. If successful, you should be able to run or replicate any analysis script.
+3. You can use the real graph models `g`, `g_l_s` (Glcc) and `g_wire` (GSIBW2) for further empiric work. 
+4. You can also do this with the baselines, or the fitted ERGM `fit_wire2`, or their simulations.
+
+**Warning**: Running the ERGM fitting producing script again just to reproduce it takes considerable time to run,
+it is therefore not recommended to do so.
+Plots/Visualizations also take considerable time. 
+
 
 ## Reproducibility Details
 - Package versions are pinned by `renv.lock`. Use `renv::restore()` to recreate the environment.

@@ -193,7 +193,7 @@ binary_rows <- grep(weighted_tag, rownames(metrics_df), invert = TRUE, value = T
 binary_df   <- metrics_df[binary_rows, ]
 
 weighted_rows <- grep(weighted_tag, rownames(metrics_df), value = TRUE)
-weighted_df   <- metrics_df[weighted_rows, c("Real", "GSIBW2")]
+weighted_df   <- metrics_df[weighted_rows, c("Glcc", "GSIBW2")]
 
 # Format numeric output (4 d.p.) ------------------------------------------------
 format_fun <- function(x) formatC(as.numeric(x), format = "f", digits = 4, drop0trailing = TRUE)

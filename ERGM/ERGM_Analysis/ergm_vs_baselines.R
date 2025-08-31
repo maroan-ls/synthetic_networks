@@ -37,7 +37,7 @@ library(intergraph)
 
 compute_graph_metrics_2 <- function(net, w_attr = "w_scale") {
   g  <- .as_igraph_binary_directed(net, w_attr)
-  gu <- as.undirected(g, mode = "collapse")  # for clustering & assortativity
+  gu <- as_undirected(g, mode = "collapse")  # for clustering & assortativity
   
   n <- vcount(g); m <- ecount(g)
   
