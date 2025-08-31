@@ -82,4 +82,6 @@ logLik(fit_wire2, add = TRUE)
 
 mcmc.diagnostics(fit_wire2, which = "plots")
 
-saveRDS(c("sims","obs"), here::here("data/derived/models","ergm_sims.rds"))
+#options(update_cache = TRUE)           # allow overwrite
+path_sims <- here::here("data/derived/models","ergm_sims.rds")
+cache_write(list(sims = sims, obs = obs), path_sims)  # overwrites only if options(update_cache=TRUE)
