@@ -15,7 +15,7 @@ This is a repository for supplementary code material for the Master Thesis "Synt
    ```r
    source("R/replicate.R")
    ```
-3. **Alternatively** directly with `{renv}` (this does the same as above but gives more control:
+**Alternatively** directly with `{renv}` (this does the same as above but gives more control):
    ```r
    install.packages("renv")
    renv::restore()
@@ -61,13 +61,15 @@ Analyses and figures can be rebuilt (reading caches) with:
 # Loads caches and runs lightweight analysis
 source("R/replicate.R")
 ```
-The `.ensure` implementation should be able to run without a dedicated library() to any package.  
+The `.ensure` implementation should be able to run without a dedicated library() to any package.
+This allows one to to run 
 
 ## Reproducability Example
-How this should look in Detail:
+Analysis scripts include a ensure() at the top to make sure the needed graphs are loaded. 
+If you want to be sure yourself, and want to run multiple analysis, or extend it:
 
 1. After running `replicate.R`, you should see variables in your Global Environment.
-2. If successful, you should be able to run or replicate any analysis script.
+2. If successful, you should be able to run or replicate any analysis script. For example scripts in the [Analysis](Analysis) or [ERGM_Analysis](ERGM/ERGM_Analysis) folder. 
 3. You can use the real graph models `g`, `g_l_s` (Glcc) and `g_wire` (GSIBW2) for further empiric work. 
 4. You can also do this with the baselines, or the fitted ERGM `fit_wire2`, or their simulations.
 
@@ -84,7 +86,7 @@ Plots/Visualizations also take considerable time.
 
 ## Troubleshooting
 - **Package install issues:** run `renv::restore()` again; if needed, update R to the latest minor release.
-- **Missing cache error:** ensure the `.rds` files exist under `data/derived/**`. If not shipped in the repo, generate them again with the steps above (not recommended, as ERGM fit takes roughly a day)
+- **Missing cache error:** ensure the `.rds` files exist under [data/derived/**](data/derived/). If not shipped in the repo, generate them again with the steps above (not recommended for ERGM, fit takes roughly a day)
 
 
 This is also published on Zenodo to create a DOI for the Thesis:
